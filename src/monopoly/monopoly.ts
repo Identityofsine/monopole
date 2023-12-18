@@ -1,6 +1,6 @@
 import { UUID } from "./identifiable";
 import { MonopolyError } from "./monopoly.error";
-import { NotificationType, Trade, WaitObject } from "./monopoly.types";
+import { MonopolyInterface, NotificationType, Trade, WaitObject } from "./monopoly.types";
 import { Player } from "./player";
 import { Space } from "./space";
 
@@ -45,6 +45,7 @@ export class Monopoly {
 	private waitForPlayer(player: Player): void {
 		this.wait.waiting = true;
 		this.wait.who = player.UUID;
+		console.log('[monopoly] waiting for player %s', player.Name);
 	}
 
 	private stopWaiting(): void {
@@ -52,10 +53,10 @@ export class Monopoly {
 		this.wait.who = '';
 	}
 
-	public addPlayer(player_obj: string | Player): void {
+	public addPlayer(player_obj: string | Player, IMonopoly?: MonopolyInterface): void {
 		let player: Player | null = null;
 		if (typeof player_obj === 'string') {
-			player = new Player(player_obj);
+			player = new Player(player_obj, undefined, undefined, IMonopoly);
 		} else if (player_obj instanceof Player) {
 			player = player_obj;
 		}
@@ -64,6 +65,10 @@ export class Monopoly {
 		}
 
 		player.setCommunicationLayer(this.m_PCLFactory(player));
+		if (IMonopoly) {
+			player.setMonopolyInterface(IMonopoly);
+		}
+
 		this.players.push(player);
 	}
 
@@ -73,7 +78,10 @@ export class Monopoly {
 		}
 		const new_position: number = player.move(spaces);
 		this.stopWaiting();
+		console.log('[monopoly] player %s moved to space %d', player.Name, new_position);
+
 		//const space: Space = this.spaces[new_position];
+		player.notify({ type: NotificationType.DECISION, message: 'You are on space ' + new_position, decision: ['buy', 'ignore'] })
 
 		return {} as Space;
 	}
@@ -85,8 +93,9 @@ export class Monopoly {
 		else
 			this.currentPlayer = (this.currentPlayer + 1) % this.players.length;
 		const player: Player = this.players[this.currentPlayer];
-		player.notify({ type: NotificationType.DECISION, message: 'It is your turn', decision: 'roll' });
+
 		this.waitForPlayer(player);
+		player.notify({ type: NotificationType.DECISION, message: 'It is your turn', decision: 'roll' });
 	}
 
 
@@ -122,8 +131,8 @@ export class MonopolyEngine {
 	private engineThread: Promise<void> | undefined;
 	private ENGINE_TICK: number = 150;
 
-	public addPlayer(player: Player): void {
-		this.monopoly.addPlayer(player);
+	public addPlayer(player: Player | string, IMonopoly?: MonopolyInterface): void {
+		this.monopoly.addPlayer(player, IMonopoly);
 	}
 
 	public start(): void {
@@ -152,6 +161,7 @@ export class MonopolyEngine {
 	private async engine() {
 		while (this.gameStarted) {
 
+			this.monopoly.nextTurn();
 			await MonopolyEngine.sleep(this.ENGINE_TICK)
 		}
 	}
