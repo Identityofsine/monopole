@@ -12,7 +12,8 @@ export class MonopolyServer implements MonopolyInterface {
 	private games = new Map<UUID.UUID, MonopolyEngine>();
 
 	public constructor() {
-
+		console.log('[monopolyserver] created');
+		this.m_setup();
 	}
 
 	private m_setup(): void {
@@ -23,14 +24,14 @@ export class MonopolyServer implements MonopolyInterface {
 				const game = this.getGame(uuid);
 				if (game) {
 					const player = new Player(data.name, data.uuid, undefined, this);
-					game.addPlayer(player);
+					game.addPlayer(player, this);
 				}
 			} else {
 				if (!data.game_uuid) throw new MonopolyError('No game uuid provided');
 				const game = this.getGame(data.game_uuid);
 				if (game) {
 					const player = new Player(data.name, data.uuid, undefined, this);
-					game.addPlayer(player);
+					game.addPlayer(player, this);
 				}
 			}
 
@@ -39,6 +40,7 @@ export class MonopolyServer implements MonopolyInterface {
 
 	private createGame(): UUID.UUID {
 		const uuid = UUID.generateUUID(15234);
+		console.log('[monopolyserver] created game %s', uuid);
 		this.games.set(uuid, new MonopolyEngine());
 		return uuid;
 	}
