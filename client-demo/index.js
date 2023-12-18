@@ -47,21 +47,14 @@ function connectToServer(_uuid) {
 		var message = convertToStringFromBuffer(_message);
 		const messageObject = safeParse(message);
 		console.log(messageObject || message);
-		if (reconnect) {
-			connection.send(JSON.stringify({ id: uuid, reconnect: true }));
-			reconnect = false;
-			return;
-		}
-		if (messageObject.new) {
-			uuid = messageObject.new.id;
-		}
-		const responseObject = {
-			id: uuid
-		}
-		if (messageObject.turn) {
-			const response = await askForInput("Would you like to buy or pass? (b/p):");
-			connection.send(JSON.stringify({ ...responseObject, choice: response === 'b' ? possible_responses.BUY : possible_responses.PASS }));
-		} else {
+		if (messageObject?.response === 'connect') {
+			//send connection message
+			//intents : create | join
+			const expected_type = {
+				intent: 'create',
+				name: 'TEST'
+			}
+			connection.send(JSON.stringify(expected_type));
 		}
 
 	});

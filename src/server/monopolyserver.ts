@@ -4,7 +4,7 @@ import { MonopolyError } from "../monopoly/monopoly.error";
 import { MonopolyInterface, NotificationEvent } from "../monopoly/monopoly.types";
 import { Player } from "../monopoly/player";
 import ServerInstance from "./websocket";
-import { ConnectionIntent } from "./ws.intent";
+import { BaseIntent, BaseResponse, ConnectionIntent } from "./ws.intent";
 
 export class MonopolyServer implements MonopolyInterface {
 
@@ -18,7 +18,17 @@ export class MonopolyServer implements MonopolyInterface {
 
 	private m_setup(): void {
 		this.instance.on('connection', (event) => {
-			const data = event.data as ConnectionIntent;
+			console.log('[monopolyserver] new connection');
+			const message: BaseResponse = {
+				response: 'connect',
+				message: 'Pick your fate.',
+				success: true,
+			}
+			event.ws.send(JSON.stringify(message));
+		});
+		this.instance.on('message', (event) => {
+			const data = ServerInstance.safeParse(event.data) as BaseIntent;
+			console.log('[monopolyserver] message: %s', data);
 			if (data.intent === 'create') {
 				const uuid = this.createGame();
 				const game = this.getGame(uuid);
