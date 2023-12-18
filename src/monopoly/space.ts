@@ -1,3 +1,5 @@
-export abstract class Space {
+import { Identifiable } from "./identifiable";
+
+export abstract class Space extends Identifiable {
 
 }
