@@ -157,7 +157,7 @@ export class MonopolyServer implements MonopolyInterface {
 		const message: GameResponse = {
 			response: 'respond',
 			decision: notification.decision,
-			message: notification.message,
+			message: { message: notification.message, object: notification.data },
 			success: true,
 		}
 		socket.send(JSON.stringify(message));
