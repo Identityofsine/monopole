@@ -1,4 +1,5 @@
 import { Identifiable, UUID } from "./identifiable";
+import { Player } from "./player";
 
 export type Rent = number[];
 
@@ -14,7 +15,7 @@ export abstract class Space extends Identifiable {
 		super(name);
 	}
 
-	abstract onLand(): void;
+	abstract onLand(player: Player): void;
 }
 
 export class Property extends Space {
@@ -25,7 +26,7 @@ export class Property extends Space {
 		super(id, name, type);
 	}
 
-	onLand(): void {
+	onLand(player: Player): void {
 		if (this.owner === null) {
 		}
 	}
@@ -38,8 +39,8 @@ export class Street extends Property {
 		super(id, name, 1, price);
 	}
 
-	onLand(): void {
-
+	onLand(player: Player): void {
+		console.log('[monopoly] landed on street %s', this.name);
 	}
 
 }
@@ -50,7 +51,7 @@ export class Railroad extends Property {
 		super(id, name, price, 6);
 	}
 
-	onLand(): void {
+	onLand(player: Player): void {
 
 	}
 
@@ -62,7 +63,7 @@ export class Utility extends Property {
 		super(id, name, price, 7);
 	}
 
-	onLand(): void {
+	onLand(player: Player): void {
 
 	}
 
@@ -74,7 +75,7 @@ export class Tax extends Space {
 		super(id, name, 5);
 	}
 
-	onLand(): void {
+	onLand(player: Player): void {
 
 	}
 
@@ -86,7 +87,7 @@ export class Chance extends Space {
 		super(id, "Chance", 4);
 	}
 
-	onLand(): void {
+	onLand(player: Player): void {
 
 	}
 
@@ -98,7 +99,7 @@ export class CommunityChest extends Space {
 		super(id, "Community Chest", 2);
 	}
 
-	onLand(): void {
+	onLand(player: Player): void {
 
 	}
 
@@ -110,7 +111,7 @@ export class Go extends Space {
 		super(0, "Go", 0);
 	}
 
-	onLand(): void {
+	onLand(player: Player): void {
 
 	}
 
@@ -122,7 +123,7 @@ export class Jail extends Space {
 		super(10, "Jail", 9);
 	}
 
-	onLand(): void {
+	onLand(player: Player): void {
 
 	}
 
@@ -134,7 +135,7 @@ export class GoToJail extends Space {
 		super(39, "Go To Jail", 10);
 	}
 
-	onLand(): void {
+	onLand(player: Player): void {
 
 	}
 
@@ -145,7 +146,7 @@ export class FreeParking extends Space {
 		super(9, "Free Parking", 3);
 	}
 
-	onLand(): void {
+	onLand(player: Player): void {
 
 	}
 }

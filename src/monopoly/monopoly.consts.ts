@@ -1,3 +1,3 @@
 export const MONOPOLY_CONSTS = {
-	spaces: 39
+	spaces: 40
 }

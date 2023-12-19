@@ -96,8 +96,9 @@ export class Monopoly {
 		this.stopWaiting();
 		console.log('[monopoly] player %s moved to space %d', player.Name, new_position);
 
-		//const space: Space = this.spaces[new_position];
-		player.notify({ type: NotificationType.DECISION, message: 'You are on space ' + new_position, decision: ['buy', 'ignore'] })
+		const space: Space = this.spaces[new_position];
+		space.onLand(player);
+		player.notify({ type: NotificationType.DECISION, message: 'You are on space ' + new_position, decision: ['buy', 'ignore'], data: space })
 
 		return {} as Space;
 	}
