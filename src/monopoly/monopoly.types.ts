@@ -18,6 +18,14 @@ export type WaitObject = {
 	notification?: NotificationEvent;
 }
 
+export type LandInformation = {
+	space: Space;
+	owner?: UUID.UUID;
+	rent?: number; //current rent
+	decision?: DecisionType | DecisionType[];
+	engine_should_wait: boolean;
+}
+
 export enum NotificationType {
 	INFO,
 	DECISION,

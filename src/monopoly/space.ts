@@ -1,4 +1,5 @@
 import { Identifiable, UUID } from "./identifiable";
+import { DecisionType, LandInformation } from "./monopoly.types";
 import { Player } from "./player";
 
 export type Rent = number[];
@@ -15,7 +16,17 @@ export abstract class Space extends Identifiable {
 		super(name);
 	}
 
-	abstract onLand(player: Player): void;
+	protected m_landinformationFactory(player: Player, shouldWait: boolean, decision?: DecisionType | DecisionType[]): LandInformation {
+		return {
+			space: this,
+			owner: '',
+			rent: 0,
+			engine_should_wait: shouldWait,
+			decision: decision
+		}
+	}
+
+	abstract onLand(player: Player): LandInformation;
 }
 
 export class Property extends Space {
@@ -26,9 +37,23 @@ export class Property extends Space {
 		super(id, name, type);
 	}
 
-	onLand(player: Player): void {
-		if (this.owner === null) {
+	protected override m_landinformationFactory(player: Player, shouldWait: boolean, decision?: DecisionType | DecisionType[]): LandInformation {
+		return {
+			space: this,
+			owner: this.owner ?? '',
+			rent: 0,
+			engine_should_wait: shouldWait,
+			decision: decision
 		}
+	}
+
+	onLand(player: Player): LandInformation {
+		if (this.owner === null) {
+			return this.m_landinformationFactory(player, true, ['buy', 'ignore'])
+		} else if (this.owner === player.UUID) {
+			return this.m_landinformationFactory(player, true, ['sell', 'mortgage', 'build', 'demolish', 'ignore'])
+		}
+		return this.m_landinformationFactory(player, true, ['trade', 'ignore']);
 	}
 
 }
@@ -39,7 +64,7 @@ export class Street extends Property {
 		super(id, name, 1, price);
 	}
 
-	onLand(player: Player): void {
+	onLand(player: Player): LandInformation {
 		console.log('[monopoly] landed on street %s', this.name);
 	}
 
@@ -51,7 +76,7 @@ export class Railroad extends Property {
 		super(id, name, price, 6);
 	}
 
-	onLand(player: Player): void {
+	onLand(player: Player): LandInformation {
 
 	}
 
@@ -63,7 +88,7 @@ export class Utility extends Property {
 		super(id, name, price, 7);
 	}
 
-	onLand(player: Player): void {
+	onLand(player: Player): LandInformation {
 
 	}
 
@@ -75,7 +100,7 @@ export class Tax extends Space {
 		super(id, name, 5);
 	}
 
-	onLand(player: Player): void {
+	onLand(player: Player): LandInformation {
 
 	}
 
@@ -87,7 +112,7 @@ export class Chance extends Space {
 		super(id, "Chance", 4);
 	}
 
-	onLand(player: Player): void {
+	onLand(player: Player): LandInformation {
 
 	}
 
@@ -99,7 +124,7 @@ export class CommunityChest extends Space {
 		super(id, "Community Chest", 2);
 	}
 
-	onLand(player: Player): void {
+	onLand(player: Player): LandInformation {
 
 	}
 
@@ -111,7 +136,7 @@ export class Go extends Space {
 		super(0, "Go", 0);
 	}
 
-	onLand(player: Player): void {
+	onLand(player: Player): LandInformation {
 
 	}
 
@@ -123,7 +148,7 @@ export class Jail extends Space {
 		super(10, "Jail", 9);
 	}
 
-	onLand(player: Player): void {
+	onLand(player: Player): LandInformation {
 
 	}
 
@@ -135,7 +160,7 @@ export class GoToJail extends Space {
 		super(39, "Go To Jail", 10);
 	}
 
-	onLand(player: Player): void {
+	onLand(player: Player): LandInformation {
 
 	}
 
@@ -146,7 +171,7 @@ export class FreeParking extends Space {
 		super(9, "Free Parking", 3);
 	}
 
-	onLand(player: Player): void {
+	onLand(player: Player): LandInformation {
 
 	}
 }
