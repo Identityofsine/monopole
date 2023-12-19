@@ -31,10 +31,18 @@ export abstract class Space extends Identifiable {
 
 export class Property extends Space {
 
-	public owner: UUID.UUID | null = null;
+	public _owner: UUID.UUID | null = null;
 
 	constructor(public readonly id: number, public readonly name: string, public readonly type: number, public readonly price: number) {
 		super(id, name, type);
+	}
+
+	public get owner(): UUID.UUID | null {
+		return this._owner;
+	}
+
+	public setOwner(owner: UUID.UUID | null): void {
+		this._owner = owner;
 	}
 
 	protected override m_landinformationFactory(player: Player, shouldWait: boolean, decision?: DecisionType | DecisionType[]): LandInformation {
@@ -64,10 +72,6 @@ export class Street extends Property {
 		super(id, name, 1, price);
 	}
 
-	onLand(player: Player): LandInformation {
-		console.log('[monopoly] landed on street %s', this.name);
-	}
-
 }
 
 export class Railroad extends Property {
@@ -76,20 +80,12 @@ export class Railroad extends Property {
 		super(id, name, price, 6);
 	}
 
-	onLand(player: Player): LandInformation {
-
-	}
-
 }
 
 export class Utility extends Property {
 
 	constructor(public readonly id: number, public readonly name: string, public readonly price: number, public readonly rent: Rent) {
 		super(id, name, price, 7);
-	}
-
-	onLand(player: Player): LandInformation {
-
 	}
 
 }
@@ -101,7 +97,8 @@ export class Tax extends Space {
 	}
 
 	onLand(player: Player): LandInformation {
-
+		//TODO: implement
+		return { space: this, engine_should_wait: false } as LandInformation;
 	}
 
 }
@@ -113,7 +110,7 @@ export class Chance extends Space {
 	}
 
 	onLand(player: Player): LandInformation {
-
+		return { space: this, engine_should_wait: false } as LandInformation;
 	}
 
 }
@@ -125,7 +122,7 @@ export class CommunityChest extends Space {
 	}
 
 	onLand(player: Player): LandInformation {
-
+		return { space: this, engine_should_wait: false } as LandInformation;
 	}
 
 }
@@ -137,7 +134,7 @@ export class Go extends Space {
 	}
 
 	onLand(player: Player): LandInformation {
-
+		return { space: this, engine_should_wait: false } as LandInformation;
 	}
 
 }
@@ -149,7 +146,7 @@ export class Jail extends Space {
 	}
 
 	onLand(player: Player): LandInformation {
-
+		return { space: this, engine_should_wait: false } as LandInformation;
 	}
 
 }
@@ -161,7 +158,7 @@ export class GoToJail extends Space {
 	}
 
 	onLand(player: Player): LandInformation {
-
+		return { space: this, engine_should_wait: false } as LandInformation;
 	}
 
 }
@@ -172,7 +169,7 @@ export class FreeParking extends Space {
 	}
 
 	onLand(player: Player): LandInformation {
-
+		return { space: this, engine_should_wait: false } as LandInformation;
 	}
 }
 

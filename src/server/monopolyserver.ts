@@ -68,6 +68,40 @@ export class MonopolyServer implements MonopolyInterface {
 		}
 	}
 
+	private m_responseStage(data: ResponseIntent, ws: WebSocket): void {
+		try {
+			if (!data.game_uuid) throw new MonopolyError('No game uuid provided');
+			if (!data.uuid) throw new MonopolyError('No player uuid provided');
+			const engine = this.getGame(data.game_uuid);
+			if (!engine) throw new MonopolyError('No engine found');
+			const player = engine.engine.Monopoly.getPlayer(data.uuid);
+			if (!player) throw new MonopolyError('No player found');
+			const communicationlayer = engine.engine.Monopoly.m_PCLFactory(player);
+
+			const action = data.decision;
+			if (action === 'roll') {
+				const dice = communicationlayer.rollDice();
+				ws.send(JSON.stringify(MessageFactory.createMessage('You rolled ' + (dice.dice1 + dice.dice2))));
+				communicationlayer.move(dice.dice1 + dice.dice2);
+			} else if (action == 'ignore') {
+				communicationlayer.ignore();
+			} else if (action == 'buy') {
+				if (communicationlayer.buyProperty()) {
+					ws.send(JSON.stringify(MessageFactory.createMessage('You bought property')));
+				} else {
+					ws.send(JSON.stringify(MessageFactory.createMessage('Unable to buy property')));
+				}
+			}
+
+			console.log('[monopolyserver] received response: ', data);
+		}
+		catch (e) {
+			console.log("[monopolyserver] error with response:", data)
+			console.log("Error: " + e);
+
+		}
+	}
+
 	private m_setup(): void {
 		this.instance.on('connection', (event) => {
 			console.log('[monopolyserver] new connection');
@@ -78,33 +112,9 @@ export class MonopolyServer implements MonopolyInterface {
 			if (data.intent === 'create' || data.intent === 'join') {
 				this.m_connectionStage(event.ws, data as ConnectionIntent);
 			}
-			if (data.intent === 'response') {
-				const data = ServerInstance.safeParse(event.data) as ResponseIntent;
-				try {
-					if (!data.game_uuid) throw new MonopolyError('No game uuid provided');
-					if (!data.uuid) throw new MonopolyError('No player uuid provided');
-					const engine = this.getGame(data.game_uuid);
-					if (!engine) throw new MonopolyError('No engine found');
-					const player = engine.engine.Monopoly.getPlayer(data.uuid);
-					if (!player) throw new MonopolyError('No player found');
-					const communicationlayer = engine.engine.Monopoly.m_PCLFactory(player);
-
-					const action = data.decision;
-					if (action === 'roll') {
-						const dice = communicationlayer.rollDice();
-						event.ws.send(JSON.stringify(MessageFactory.createMessage('You rolled ' + (dice.dice1 + dice.dice2))));
-						communicationlayer.move(dice.dice1 + dice.dice2);
-					}
-
-					console.log('[monopolyserver] received response');
-				}
-				catch (e) {
-					console.log("[monopolyserver] error with response:", data)
-					console.log("Error: " + e);
-
-				}
+			else if (data.intent === 'response') {
+				this.m_responseStage(data as ResponseIntent, event.ws);
 			}
-
 		});
 	}
 

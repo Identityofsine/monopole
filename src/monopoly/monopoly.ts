@@ -3,7 +3,7 @@ import { UUID } from "./identifiable";
 import { MonopolyError } from "./monopoly.error";
 import { MonopolyInterface, NotificationType, Trade, WaitObject } from "./monopoly.types";
 import { Player } from "./player";
-import { Space } from "./space";
+import { Property, Space } from "./space";
 
 export class Pair {
 	dice1: number;
@@ -50,7 +50,8 @@ export class Monopoly {
 			buyProperty: () => this.buyProperty(player),
 			sellProperty: () => this.sellProperty(player),
 			createTrade: (_player: Player | UUID.UUID, trade: Trade) => this.createTrade(player, _player, trade),
-			acceptTrade: (trade: Trade) => this.acceptTrade(player, trade)
+			acceptTrade: (trade: Trade) => this.acceptTrade(player, trade),
+			ignore: () => this.stopWaiting()
 		}
 	}
 
@@ -92,13 +93,22 @@ export class Monopoly {
 		if (player.UUID !== (this.players[this.currentPlayer]?.UUID ?? - 1)) {
 			throw new MonopolyError('Not Player\'s turn');
 		}
+		const current_position: number = player.Position;
 		const new_position: number = player.move(spaces);
+		if (new_position < current_position) {
+			player.giveMoney(200);
+			console.log('[monopoly] player %s passed go', player.Name);
+		}
+
 		this.stopWaiting();
 		console.log('[monopoly] player %s moved to space %d', player.Name, new_position);
 
 		const space: Space = this.spaces[new_position];
-		space.onLand(player);
-		player.notify({ type: NotificationType.DECISION, message: 'You are on space ' + new_position, decision: ['buy', 'ignore'], data: space })
+		const land_response = space.onLand(player);
+		if (land_response.engine_should_wait && land_response.decision) {
+			player.notify({ type: NotificationType.DECISION, message: 'You are on space ' + new_position, decision: land_response.decision ?? 'ignore', data: space })
+			this.waitForPlayer(player);
+		}
 
 		return {} as Space;
 	}
@@ -129,7 +139,27 @@ export class Monopoly {
 	}
 
 	private buyProperty(player: Player): boolean {
-		//TODO: implement
+		const position = player.Position;
+		const space = this.spaces[position];
+		//check if space is  Property
+		if (space instanceof Property) {
+			const property = space as Property;
+			if ((property?.owner ?? '') === '') {
+				if (player.Money >= property.price) {
+					player.takeMoney(property.price);
+					property.setOwner(player.UUID);
+					console.log('[monopoly] player %s bought %s for %d', player.Name, property.name, property.price);
+					return true;
+				} else {
+					return false;
+				}
+			} else {
+				throw new MonopolyError('Property already owned');
+			}
+		} else {
+			throw new MonopolyError('Space is not a property');
+		}
+
 		return false;
 	}
 
@@ -218,6 +248,7 @@ export interface PlayerCommunicationLayer {
 	sellProperty(): boolean;
 	createTrade(player: Player | UUID.UUID, trade: Trade): boolean;
 	acceptTrade(trade: Trade): boolean;
+	ignore(): void;
 }
 
 export interface BuildingCommunicationLayer {

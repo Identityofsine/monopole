@@ -38,6 +38,33 @@ export class Player extends Identifiable {
 		this.position = position;
 	}
 
+	public get Position(): number {
+		return this.position;
+	}
+
+	public get Money(): number {
+		return this.money;
+	}
+
+	public set Money(money: number) {
+		this.money = money;
+	}
+
+	public giveMoney(amount: number): void {
+		this.money += amount;
+	}
+
+	public takeMoney(amount: number): number {
+		//dont allow negative money
+		if ((this.money - amount) < 0) {
+			const temp = this.money;
+			this.money = 0;
+			return temp;
+		}
+		this.money -= amount;
+		return amount;
+	}
+
 	public notify(message: NotificationEvent): void {
 		if (!this.communicationLayer) {
 			throw new MonopolyError('Player has no communication layer');

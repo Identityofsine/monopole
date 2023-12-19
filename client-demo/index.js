@@ -34,6 +34,27 @@ function safeParse(obj) {
 	}
 }
 
+/**
+	* @param {[]} responses
+	*/
+async function handleVariousResponses(response, game_uuid, user_uuid) {
+	let i = 0;
+	console.log("-".repeat(10));
+	for (i = 0; i < response.length; i++) {
+		console.log("[%i] %s", i, response[i]);
+	}
+	console.log("Please select a response: ");
+	console.log("-".repeat(10));
+	const responseIndex = parseInt(await askForInput("Response: "));
+	return {
+		intent: 'response',
+		game_uuid: game_uuid,
+		uuid: user_uuid,
+		decision: response[responseIndex]
+	}
+
+}
+
 
 function connectToServer(_uuid) {
 	let uuid = _uuid;
@@ -84,9 +105,14 @@ function connectToServer(_uuid) {
 							uuid: user_uuid,
 							decision: 'roll'
 						}));
+
+					} else {
+						const response = await handleVariousResponses([decision], uuid, user_uuid);
+						connection.send(JSON.stringify(response));
 					}
 				} else if (Array.isArray(decision)) {
-
+					const response = await handleVariousResponses(decision, uuid, user_uuid);
+					connection.send(JSON.stringify(response));
 				}
 			}
 		}
