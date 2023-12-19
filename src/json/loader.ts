@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { Go, Space, Street, CommunityChest, FreeParking, Chance, Tax, Railroad, Utility } from '../monopoly/space';
+import { Go, Space, Street, CommunityChest, FreeParking, Chance, Tax, Railroad, Utility, GoToJail, Jail } from '../monopoly/space';
 // Purpose: Load objects from path
 
 let cache = new Map<string, any>();
@@ -60,13 +60,13 @@ export function castSpace(square_preobject: Space): Space {
 		}
 		case 7: {
 			const utility = square_preobject as Utility;
-			return new Utility(utility.id, utility.name, utility.price);
+			return new Utility(utility.id, utility.name, utility.price, utility.rent);
 		}
 		case 8: {
-			return new MonopolyTypes.GoToJail();
+			return new GoToJail();
 		}
 		case 9: {
-			return new MonopolyTypes.Jail();
+			return new Jail();
 		}
 	}
 	return square_preobject;

@@ -1,3 +1,4 @@
+import { cachePath, castSpace } from "../json/loader";
 import { UUID } from "./identifiable";
 import { MonopolyError } from "./monopoly.error";
 import { MonopolyInterface, NotificationType, Trade, WaitObject } from "./monopoly.types";
@@ -17,10 +18,16 @@ export class Pair {
 	}
 }
 
+function createBoard(): Space[] {
+	const json_squares = cachePath<{ spaces: Space[] }>("./src/data/spaces.json").spaces;
+	const spaces: Space[] = json_squares.map((space) => castSpace(space));
+	return spaces;
+}
+
 export class Monopoly {
 	private UUID: UUID.UUID;
 	private players: Player[] = [];
-	private spaces: Space[] = [];
+	private spaces: Space[] = createBoard();
 	private wait: WaitObject = {
 		waiting: false,
 		who: '',
@@ -29,6 +36,9 @@ export class Monopoly {
 
 	public constructor(uuid?: UUID.UUID) {
 		this.UUID = uuid ?? UUID.generateUUID(15234);
+		console.log('[monopoly] created new game with id %s', this.UUID);
+		//print board length
+		console.log('[monopoly] board length: %d', this.spaces.length);
 	}
 
 

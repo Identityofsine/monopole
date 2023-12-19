@@ -119,7 +119,7 @@ export class Go extends Space {
 export class Jail extends Space {
 
 	constructor() {
-		super("Jail", 9);
+		super(10, "Jail", 9);
 	}
 
 	onLand(): void {
@@ -131,7 +131,7 @@ export class Jail extends Space {
 export class GoToJail extends Space {
 
 	constructor() {
-		super("Go To Jail", 10);
+		super(39, "Go To Jail", 10);
 	}
 
 	onLand(): void {
@@ -142,7 +142,7 @@ export class GoToJail extends Space {
 
 export class FreeParking extends Space {
 	constructor() {
-		super("Free Parking", 3);
+		super(9, "Free Parking", 3);
 	}
 
 	onLand(): void {
