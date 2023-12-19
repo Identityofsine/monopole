@@ -1,0 +1,55 @@
+{
+    "groups": [
+      {
+        "id": 0,
+        "colorName": "Brown",
+        "numberOfProperties": 2
+      },
+      {
+        "id": 1,
+        "colorName": "Light Blue",
+        "numberOfProperties": 3
+      },
+      {
+        "id": 2,
+        "colorName": "Pink",
+        "numberOfProperties": 3
+      },
+      {
+        "id": 3,
+        "colorName": "Orange",
+        "numberOfProperties": 3
+      },
+      {
+        "id": 4,
+        "colorName": "Red",
+        "numberOfProperties": 3
+      },
+      {
+        "id": 5,
+        "colorName": "Yellow",
+        "numberOfProperties": 3
+      },
+      {
+        "id": 6,
+        "colorName": "Green",
+        "numberOfProperties": 3
+      },
+      {
+        "id": 7,
+        "colorName": "Blue",
+        "numberOfProperties": 2
+      },
+      {
+        "id": 8,
+        "colorName": "Railroad",
+        "numberOfProperties": 4
+      },
+      {
+        "id": 9,
+        "colorName": "Utility",
+        "numberOfProperties": 2
+      }
+    ]
+  }
+  
