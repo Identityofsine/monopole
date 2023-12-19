@@ -11,7 +11,7 @@ export type ConnectionIntent = {
 	intent: 'create' | 'join'
 } & BaseIntent
 
-export type Responses = 'connect' | 'join' | 'respond'
+export type Responses = 'connect' | 'join' | 'respond' | 'message'
 
 export type BaseResponse = {
 	response: Responses;

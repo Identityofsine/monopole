@@ -35,5 +35,6 @@ export type NotificationEvent = {
 
 export interface MonopolyInterface {
 	onNotification(player: Player, communicationlayer: PlayerCommunicationLayer, notification: NotificationEvent): void;
+	onPlayerAdded(player: Player, engine_id: UUID.UUID): void;
 
 }

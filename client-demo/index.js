@@ -37,7 +37,7 @@ function safeParse(obj) {
 
 function connectToServer(_uuid) {
 	let uuid = _uuid;
-	let reconnect = uuid?.length > 0;
+	let creating_server = uuid?.length <= 0;
 	let connection = new ws(`${connection_object.protocol}://${connection_object.address}`);
 	connection.on('open', () => {
 		console.log('Connection opened');
@@ -50,11 +50,18 @@ function connectToServer(_uuid) {
 		if (messageObject?.response === 'connect') {
 			//send connection message
 			//intents : create | join
-			const expected_type = {
-				intent: 'create',
-				name: 'TEST'
+			if (creating_server) {
+				connection.send(JSON.stringify({
+					intent: 'create',
+					name: 'TEST'
+				}));
+			} else {
+				connection.send(JSON.stringify({
+					intent: 'join',
+					name: 'CONNECTOR',
+					game_uuid: uuid
+				}));
 			}
-			connection.send(JSON.stringify(expected_type));
 		}
 
 	});

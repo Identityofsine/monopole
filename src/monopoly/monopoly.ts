@@ -18,6 +18,7 @@ export class Pair {
 }
 
 export class Monopoly {
+	private UUID: UUID.UUID;
 	private players: Player[] = [];
 	private spaces: Space[] = [];
 	private wait: WaitObject = {
@@ -26,9 +27,14 @@ export class Monopoly {
 	}
 	private currentPlayer: number = -1;
 
+	public constructor(uuid?: UUID.UUID) {
+		this.UUID = uuid ?? UUID.generateUUID(15234);
+	}
+
 
 	private m_PCLFactory(player: Player): PlayerCommunicationLayer {
 		return {
+			engine_id: this.UUID,
 			rollDice: () => Pair.roll(),
 			move: (amount: number) => this.movePlayer(player, amount),
 			buyProperty: () => this.buyProperty(player),
@@ -126,10 +132,21 @@ export class Monopoly {
 }
 
 export class MonopolyEngine {
-	private monopoly: Monopoly = new Monopoly();
+	private id: UUID.UUID;
+	private monopoly: Monopoly;
 	private gameStarted: boolean = false;
 	private engineThread: Promise<void> | undefined;
 	private ENGINE_TICK: number = 150;
+
+	public constructor(uuid?: UUID.UUID) {
+		this.id = uuid ?? UUID.generateUUID(15234);
+		this.monopoly = new Monopoly(this.id);
+	}
+
+	public get ID(): UUID.UUID {
+		return this.id;
+	}
+
 
 	public addPlayer(player: Player | string, IMonopoly?: MonopolyInterface): void {
 		this.monopoly.addPlayer(player, IMonopoly);
@@ -168,6 +185,7 @@ export class MonopolyEngine {
 }
 
 export interface PlayerCommunicationLayer {
+	engine_id: UUID.UUID;
 	rollDice(): Pair;
 	move(amount: number): Space;
 	buyProperty(): boolean;
