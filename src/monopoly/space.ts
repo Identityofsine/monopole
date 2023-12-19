@@ -57,11 +57,11 @@ export class Property extends Space {
 
 	onLand(player: Player): LandInformation {
 		if (this.owner === null) {
-			return this.m_landinformationFactory(player, true, ['buy', 'ignore'])
+			return this.m_landinformationFactory(player, true, ['buy'])
 		} else if (this.owner === player.UUID) {
-			return this.m_landinformationFactory(player, true, ['sell', 'mortgage', 'build', 'demolish', 'ignore'])
+			return this.m_landinformationFactory(player, true, ['sell', 'mortgage', 'build', 'demolish'])
 		}
-		return this.m_landinformationFactory(player, true, ['trade', 'ignore']);
+		return this.m_landinformationFactory(player, true);
 	}
 
 }

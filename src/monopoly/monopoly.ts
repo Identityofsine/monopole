@@ -1,7 +1,7 @@
 import { cachePath, castSpace } from "../json/loader";
 import { UUID } from "./identifiable";
 import { MonopolyError } from "./monopoly.error";
-import { MonopolyInterface, NotificationType, Trade, WaitObject } from "./monopoly.types";
+import { DecisionType, MonopolyInterface, NotificationType, Trade, WaitObject } from "./monopoly.types";
 import { Player } from "./player";
 import { Property, Space } from "./space";
 
@@ -103,10 +103,22 @@ export class Monopoly {
 		this.stopWaiting();
 		console.log('[monopoly] player %s moved to space %d', player.Name, new_position);
 
+
+
 		const space: Space = this.spaces[new_position];
 		const land_response = space.onLand(player);
-		if (land_response.engine_should_wait && land_response.decision) {
-			player.notify({ type: NotificationType.DECISION, message: 'You are on space ' + new_position, decision: land_response.decision ?? 'ignore', data: space })
+
+		const general_decisions: DecisionType[] = ['ignore', 'trade'];
+
+		if (land_response.engine_should_wait) {
+			if (land_response.decision === undefined) {
+				land_response.decision = [];
+			}
+			else if (typeof land_response.decision === 'string') {
+				land_response.decision = [land_response.decision];
+			}
+			const decisions: DecisionType[] = [...land_response.decision, ...general_decisions];
+			player.notify({ type: NotificationType.DECISION, message: 'You are on space ' + new_position, decision: decisions, data: space })
 			this.waitForPlayer(player);
 		}
 

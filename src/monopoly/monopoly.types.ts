@@ -33,6 +33,14 @@ export enum NotificationType {
 	ERROR
 }
 
+//Keys should be an array
+export type Keys<O extends object> = Array<keyof O>;
+
+//exclude keys from type
+export type Filter<A extends Record<string, any>, B extends keyof A> = {
+	[K in Exclude<keyof A, B>]: A[K]
+}
+
 export type DecisionType = 'roll' | 'trade' | 'buy' | 'sell' | 'mortgage' | 'unmortgage' | 'build' | 'demolish' | 'ignore';
 
 export type NotificationEvent = {

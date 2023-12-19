@@ -1,7 +1,7 @@
 import { UUID } from "../monopoly/identifiable";
 import { MonopolyEngine, PlayerCommunicationLayer } from "../monopoly/monopoly";
 import { MonopolyError } from "../monopoly/monopoly.error";
-import { DecisionType, MonopolyInterface, NotificationEvent } from "../monopoly/monopoly.types";
+import { DecisionType, Filter, MonopolyInterface, NotificationEvent } from "../monopoly/monopoly.types";
 import { Player } from "../monopoly/player";
 import ServerInstance from "./websocket";
 import * as WebSocket from 'ws';
@@ -91,7 +91,9 @@ export class MonopolyServer implements MonopolyInterface {
 				} else {
 					ws.send(JSON.stringify(MessageFactory.createMessage('Unable to buy property')));
 				}
+				communicationlayer.ignore();
 			}
+			this.m_sendUpdate(engine, player);
 
 			console.log('[monopolyserver] received response: ', data);
 		}
@@ -100,6 +102,16 @@ export class MonopolyServer implements MonopolyInterface {
 			console.log("Error: " + e);
 
 		}
+	}
+
+	private m_sendUpdate(game: MonopolyGame, player: Player) {
+		const filtered_player: Filter<Player, | 'notify' | 'giveMoney' | 'takeMoney' | 'setPosition' | 'setMonopolyInterface' | 'setCommunicationLayer'> = player;
+		const update: GameResponse = {
+			response: 'update',
+			message: { message: 'Player ' + filtered_player.Name + ' has updated', object: filtered_player },
+			success: true,
+		}
+		this.broadcast(game, update);
 	}
 
 	private m_setup(): void {

@@ -18,7 +18,7 @@ export type ResponseIntent = {
 	decision: DecisionType
 } & BaseIntent
 
-export type Responses = 'connect' | 'join' | 'respond' | 'message' | 'id'
+export type Responses = 'connect' | 'join' | 'respond' | 'message' | 'id' | 'update'
 
 export type BaseResponse = {
 	response: Responses;
@@ -27,6 +27,6 @@ export type BaseResponse = {
 }
 
 export type GameResponse = {
-	response: 'message' | 'respond';
+	response: 'message' | 'respond' | 'update';
 	decision?: DecisionType | DecisionType[];
 } & BaseResponse
