@@ -31,6 +31,7 @@ export type NotificationEvent = {
 	type: NotificationType;
 	message: string;
 	decision?: DecisionType | DecisionType[];
+	data?: Object;
 }
 
 export interface MonopolyInterface {

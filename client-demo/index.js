@@ -37,6 +37,7 @@ function safeParse(obj) {
 
 function connectToServer(_uuid) {
 	let uuid = _uuid;
+	let user_uuid = '';
 	let creating_server = uuid?.length <= 0;
 	let connection = new ws(`${connection_object.protocol}://${connection_object.address}`);
 	connection.on('open', () => {
@@ -61,6 +62,32 @@ function connectToServer(_uuid) {
 					name: 'CONNECTOR',
 					game_uuid: uuid
 				}));
+			}
+		}
+		if (messageObject?.response === 'id') {
+
+			//message: { player_uuid: player.UUID, game_uuid: game.engine.ID },
+			user_uuid = messageObject.message.player_uuid;
+			uuid = messageObject.message.game_uuid;
+			console.log(`User UUID: ${user_uuid}`);
+		}
+		if (messageObject?.response === 'respond') {
+			//messageObject?.decision : DecisionType | DecisionType[]
+			if (messageObject?.decision) {
+				const decision = messageObject?.decision;
+				if (typeof decision === 'string') {
+					if (decision === 'roll') {
+						await askForInput('Roll (Press any key): ');
+						connection.send(JSON.stringify({
+							intent: 'response',
+							game_uuid: uuid,
+							uuid: user_uuid,
+							decision: 'roll'
+						}));
+					}
+				} else if (Array.isArray(decision)) {
+
+				}
 			}
 		}
 

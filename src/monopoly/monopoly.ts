@@ -32,7 +32,7 @@ export class Monopoly {
 	}
 
 
-	private m_PCLFactory(player: Player): PlayerCommunicationLayer {
+	public m_PCLFactory(player: Player): PlayerCommunicationLayer {
 		return {
 			engine_id: this.UUID,
 			rollDice: () => Pair.roll(),
@@ -104,6 +104,14 @@ export class Monopoly {
 		player.notify({ type: NotificationType.DECISION, message: 'It is your turn', decision: 'roll' });
 	}
 
+	public getPlayer(uuid: UUID.UUID): Player | undefined {
+		return this.players.find(player => player.UUID === uuid);
+	}
+
+	public get playersCount(): number {
+		return this.players.length;
+	}
+
 
 	public get CurrentPlayer(): Player {
 		return this.players[this.currentPlayer];
@@ -133,12 +141,14 @@ export class Monopoly {
 
 export class MonopolyEngine {
 	private id: UUID.UUID;
+	private master_id: UUID.UUID = '';
 	private monopoly: Monopoly;
 	private gameStarted: boolean = false;
 	private engineThread: Promise<void> | undefined;
 	private ENGINE_TICK: number = 150;
 
-	public constructor(uuid?: UUID.UUID) {
+	public constructor(uuid?: UUID.UUID, master_id?: UUID.UUID) {
+		this.master_id = master_id ?? '';
 		this.id = uuid ?? UUID.generateUUID(15234);
 		this.monopoly = new Monopoly(this.id);
 	}
@@ -149,7 +159,12 @@ export class MonopolyEngine {
 
 
 	public addPlayer(player: Player | string, IMonopoly?: MonopolyInterface): void {
+		if (this.gameStarted) throw new MonopolyError('Game already started');
 		this.monopoly.addPlayer(player, IMonopoly);
+		if (this.monopoly.playersCount >= 2) {
+			this.start();
+		}
+
 	}
 
 	public start(): void {
