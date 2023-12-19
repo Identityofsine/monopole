@@ -219,3 +219,6 @@ export interface PlayerCommunicationLayer {
 	createTrade(player: Player | UUID.UUID, trade: Trade): boolean;
 	acceptTrade(trade: Trade): boolean;
 }
+
+export interface BuildingCommunicationLayer {
+}

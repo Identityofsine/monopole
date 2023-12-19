@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import { Go, Space, Street, CommunityChest, FreeParking, Chance, Tax, Railroad, Utility, GoToJail, Jail } from '../monopoly/space';
+import { BuildingCommunicationLayer } from '../monopoly/monopoly';
 // Purpose: Load objects from path
 
 let cache = new Map<string, any>();
@@ -30,7 +31,7 @@ export function loadObjectFromPath<T>(path: string): T | null {
  *
 */
 
-export function castSpace(square_preobject: Space): Space {
+export function castSpace(square_preobject: Space, buildingCommunicationLayer?: BuildingCommunicationLayer): Space {
 	switch (square_preobject.type) {
 		case 0: {
 			return new Go();
