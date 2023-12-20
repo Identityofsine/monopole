@@ -61,7 +61,6 @@ function connectToServer(_uuid) {
 	let user_uuid = '';
 	let creating_server = uuid?.length <= 0;
 	let connection = new ws(`${connection_object.protocol}://${connection_object.address}`);
-	let injail = false;
 	connection.on('open', () => {
 		console.log('Connection opened');
 	});
@@ -78,6 +77,7 @@ function connectToServer(_uuid) {
 					intent: 'create',
 					name: 'TEST'
 				}));
+
 			} else {
 				connection.send(JSON.stringify({
 					intent: 'join',
@@ -92,6 +92,14 @@ function connectToServer(_uuid) {
 			user_uuid = messageObject.message.player_uuid;
 			uuid = messageObject.message.game_uuid;
 			console.log(`User UUID: ${user_uuid}`);
+			if (!creating_server) return;
+			await askForInput('Press any key to start...');
+			connection.send(JSON.stringify({
+				intent: 'command',
+				command: 'start',
+				game_uuid: uuid,
+				uuid: user_uuid
+			}));
 		}
 		if (messageObject?.response === 'respond') {
 			//messageObject?.decision : DecisionType | DecisionType[]

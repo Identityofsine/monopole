@@ -75,7 +75,7 @@ export class MonopolyServer implements MonopolyInterface {
 	private m_connectionStage(ws: WebSocket, data: ConnectionIntent): void {
 		const player_uuid = UUID.generateUUID(15234);
 		if (data.intent === 'create') {
-			const uuid = this.createGame();
+			const uuid = this.createGame(player_uuid);
 			const game = this.getGame(uuid);
 			if (game) {
 				const player = new Player(data.name, player_uuid, undefined, this);
@@ -150,7 +150,8 @@ export class MonopolyServer implements MonopolyInterface {
 		}
 	}
 
-	private m_handleHostCommand(data: CommandIntent, command: string, ws: WebSocket) {
+	private m_handleHostCommand(data: CommandIntent) {
+		const command = data?.command ?? '';
 		const game = this.getGame(data.game_uuid);
 		if (!game) throw new MonopolyError('No game found');
 		const player_id = data.uuid;
@@ -186,6 +187,8 @@ export class MonopolyServer implements MonopolyInterface {
 			}
 			else if (data.intent === 'response') {
 				this.m_responseStage(data as ResponseIntent, event.ws);
+			} else if (data.intent === 'command') {
+				this.m_handleHostCommand(data as CommandIntent);
 			}
 		});
 	}
@@ -203,7 +206,7 @@ export class MonopolyServer implements MonopolyInterface {
 			recipient: 'player',
 			success: true,
 			message: {
-				message: 'STATUS_UPDATE', object: { players: players, spaces: spaces },
+				message: 'STATUS_UPDATE', object: { host: game.engine.HostID, players: players, spaces: spaces },
 			}
 		}
 
@@ -236,11 +239,11 @@ export class MonopolyServer implements MonopolyInterface {
 		ws.send(JSON.stringify(id_message));
 	}
 
-	private createGame(): UUID.UUID {
+	private createGame(player_uuid?: UUID.UUID): UUID.UUID {
 		const uuid = UUID.generateUUID(15234);
 		console.log('[monopolyserver] created game %s', uuid);
 		const game: MonopolyGame = {
-			engine: new MonopolyEngine(uuid),
+			engine: new MonopolyEngine(uuid, player_uuid),
 			clients: new Map(),
 		}
 		this.games.set(uuid, game);
