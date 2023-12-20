@@ -1,7 +1,7 @@
 import { cachePath, castSpace } from "../json/loader";
 import { UUID } from "./identifiable";
 import { MonopolyError } from "./monopoly.error";
-import { DecisionType, MonopolyInterface, NotificationType, Trade, WaitObject } from "./monopoly.types";
+import { DecisionType, Filter, MonopolyInterface, NotificationType, Trade, WaitObject } from "./monopoly.types";
 import { Player } from "./player";
 import { Property, Space } from "./space";
 
@@ -27,7 +27,7 @@ function createBoard(): Space[] {
 export class Monopoly {
 	private UUID: UUID.UUID;
 	private players: Player[] = [];
-	private spaces: Space[] = createBoard();
+	private spaces: Space[];
 	private wait: WaitObject = {
 		waiting: false,
 		who: '',
@@ -36,9 +36,12 @@ export class Monopoly {
 
 	public constructor(uuid?: UUID.UUID) {
 		this.UUID = uuid ?? UUID.generateUUID(15234);
+		this.spaces = createBoard();
+		this.spaces.forEach((space: Space, index: number) => {
+			space.setCommunicationLayer(this.m_BCLFactory(space));
+		})
 		console.log('[monopoly] created new game with id %s', this.UUID);
-		//print board length
-		console.log('[monopoly] board length: %d', this.spaces.length);
+
 	}
 
 
@@ -52,6 +55,20 @@ export class Monopoly {
 			createTrade: (_player: Player | UUID.UUID, trade: Trade) => this.createTrade(player, _player, trade),
 			acceptTrade: (trade: Trade) => this.acceptTrade(player, trade),
 			ignore: () => this.stopWaiting()
+		}
+	}
+
+	public m_BCLFactory(space: Space): BuildingCommunicationLayer {
+		return {
+			engine_id: this.UUID,
+			getPlayer: (uuid: UUID.UUID) => this.getPlayer(uuid),
+			move: (player: Player, amount: number) => this.movePlayer(player, amount),
+			sendToJail: (player: Player) => { /*...*/ },
+			sendToSpace: (player: Player, space: Space | number) => { /*...*/ },
+			collect: (player: Player, amount: number) => player.takeMoney(amount),
+			award: (player: Player | UUID.UUID, amount: number) => this.givePlayerMoney(player, amount),
+			mortgage: (player: Player) => { /*...*/ },
+			unmortgage: (player: Player) => { /*...*/ },
 		}
 	}
 
@@ -89,6 +106,15 @@ export class Monopoly {
 		this.players.push(player);
 	}
 
+	public givePlayerMoney(player: Player | UUID.UUID, amount: number) {
+		if (player instanceof Player) {
+			player.giveMoney(amount);
+		} else {
+			this.getPlayer(player)?.giveMoney(amount);
+		}
+
+	}
+
 	public movePlayer(player: Player, spaces: number): Space {
 		if (player.UUID !== (this.players[this.currentPlayer]?.UUID ?? - 1)) {
 			throw new MonopolyError('Not Player\'s turn');
@@ -122,7 +148,7 @@ export class Monopoly {
 			this.waitForPlayer(player);
 		}
 
-		return {} as Space;
+		return space;
 	}
 
 	public nextTurn(): void {
@@ -143,6 +169,14 @@ export class Monopoly {
 
 	public get playersCount(): number {
 		return this.players.length;
+	}
+
+	public get Players(): Filter<Player, | 'notify' | 'giveMoney' | 'takeMoney' | 'setPosition' | 'setMonopolyInterface' | 'setCommunicationLayer'>[] {
+		return this.players;
+	}
+
+	public get Spaces(): Filter<Space, 'setCommunicationLayer' | 'onLand' | 'Name' | 'UUID'>[] {
+		return this.spaces.map((space) => { return { ...space, setCommunicationLayer: undefined, onLand: undefined } });
 	}
 
 
@@ -171,8 +205,6 @@ export class Monopoly {
 		} else {
 			throw new MonopolyError('Space is not a property');
 		}
-
-		return false;
 	}
 
 	private sellProperty(player: Player): boolean {
@@ -252,8 +284,11 @@ export class MonopolyEngine {
 	}
 }
 
-export interface PlayerCommunicationLayer {
+interface CommunicationLayer {
 	engine_id: UUID.UUID;
+}
+
+export interface PlayerCommunicationLayer extends CommunicationLayer {
 	rollDice(): Pair;
 	move(amount: number): Space;
 	buyProperty(): boolean;
@@ -263,5 +298,13 @@ export interface PlayerCommunicationLayer {
 	ignore(): void;
 }
 
-export interface BuildingCommunicationLayer {
+export interface BuildingCommunicationLayer extends CommunicationLayer {
+	move(player: Player | UUID.UUID, amount: number): Space;
+	getPlayer(player: UUID.UUID): Player | undefined;
+	sendToJail(player: Player | UUID.UUID): void;
+	sendToSpace(player: Player | UUID.UUID, space: Space): void;
+	collect(player: Player | UUID.UUID, amount: number): number;
+	award(player: Player | UUID.UUID, amount: number): void;
+	mortgage(player: Player | UUID.UUID, property: Property): void;
+	unmortgage(player: Player | UUID.UUID, property: Property): void;
 }

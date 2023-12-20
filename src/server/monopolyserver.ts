@@ -6,6 +6,7 @@ import { Player } from "../monopoly/player";
 import ServerInstance from "./websocket";
 import * as WebSocket from 'ws';
 import { BaseIntent, BaseResponse, ConnectionIntent, GameResponse, ResponseIntent } from "./ws.intent";
+import { Space } from "../monopoly/space";
 
 interface MonopolyGame {
 	engine: MonopolyEngine;
@@ -25,6 +26,7 @@ namespace MessageFactory {
 		return {
 			success: true,
 			response: 'respond',
+			recipient: 'player',
 			message: message,
 			decision: decision,
 		}
@@ -57,6 +59,7 @@ export class MonopolyServer implements MonopolyInterface {
 			if (game) {
 				const player = new Player(data.name, player_uuid, undefined, this);
 				this.addPlayer(player, ws, game);
+				this.m_sendGameInformation(uuid, ws);
 			}
 		} else if (data.intent === 'join') {
 			if (!data.game_uuid) throw new MonopolyError('No game uuid provided');
@@ -64,6 +67,7 @@ export class MonopolyServer implements MonopolyInterface {
 			if (game) {
 				const player = new Player(data.name, player_uuid, undefined, this);
 				this.addPlayer(player, ws, game);
+				this.m_sendGameInformation(data.game_uuid, ws);
 			}
 		}
 	}
@@ -108,6 +112,7 @@ export class MonopolyServer implements MonopolyInterface {
 		const filtered_player: Filter<Player, | 'notify' | 'giveMoney' | 'takeMoney' | 'setPosition' | 'setMonopolyInterface' | 'setCommunicationLayer'> = player;
 		const update: GameResponse = {
 			response: 'update',
+			recipient: 'game',
 			message: { message: 'Player ' + filtered_player.Name + ' has updated', object: filtered_player },
 			success: true,
 		}
@@ -128,6 +133,27 @@ export class MonopolyServer implements MonopolyInterface {
 				this.m_responseStage(data as ResponseIntent, event.ws);
 			}
 		});
+	}
+
+	private m_sendGameInformation(game_id: UUID.UUID, player_socket: WebSocket): void {
+		const game = this.getGame(game_id);
+		if (!game) throw new MonopolyError('No game found')
+
+		//literally send everything, current state of the board and all players
+		const players = game.engine.Monopoly.Players;
+		const spaces = game.engine.Monopoly.Spaces;
+
+		const player_message: GameResponse = {
+			response: 'update',
+			recipient: 'player',
+			success: true,
+			message: {
+				message: 'STATUS_UPDATE', object: { players: players, spaces: spaces },
+			}
+		}
+
+		player_socket.send(JSON.stringify(player_message));
+
 	}
 
 	private broadcast(game: MonopolyGame, message: BaseResponse): void {
@@ -178,6 +204,7 @@ export class MonopolyServer implements MonopolyInterface {
 
 		const message: GameResponse = {
 			response: 'respond',
+			recipient: 'player',
 			decision: notification.decision,
 			message: { message: notification.message, object: notification.data },
 			success: true,

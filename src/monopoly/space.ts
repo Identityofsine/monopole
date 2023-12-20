@@ -1,5 +1,7 @@
 import { Identifiable, UUID } from "./identifiable";
-import { DecisionType, LandInformation } from "./monopoly.types";
+import { BuildingCommunicationLayer } from "./monopoly";
+import { MonopolyError } from "./monopoly.error";
+import { DecisionType, LandInformation, NotificationType } from "./monopoly.types";
 import { Player } from "./player";
 
 export type Rent = number[];
@@ -11,6 +13,7 @@ export type Color = {
 
 export abstract class Space extends Identifiable {
 
+	private communicationLayer: BuildingCommunicationLayer | null = null;
 
 	public constructor(public readonly id: number, public readonly name: string, public readonly type: number) {
 		super(name);
@@ -24,6 +27,17 @@ export abstract class Space extends Identifiable {
 			engine_should_wait: shouldWait,
 			decision: decision
 		}
+	}
+
+	public setCommunicationLayer(layer: BuildingCommunicationLayer): void {
+		this.communicationLayer = layer;
+	}
+
+	protected useCommunicationLayer(): BuildingCommunicationLayer {
+		if (this.communicationLayer === null) {
+			throw new MonopolyError('Communication layer not set');
+		}
+		return this.communicationLayer;
 	}
 
 	abstract onLand(player: Player): LandInformation;
@@ -60,8 +74,17 @@ export class Property extends Space {
 			return this.m_landinformationFactory(player, true, ['buy'])
 		} else if (this.owner === player.UUID) {
 			return this.m_landinformationFactory(player, true, ['sell', 'mortgage', 'build', 'demolish'])
+		} else {
+			const collection = this.useCommunicationLayer().collect(player, this.price);
+			const owner = this.useCommunicationLayer().getPlayer(this.owner);
+			if (owner === undefined) throw new MonopolyError('Owner not found')
+			this.useCommunicationLayer().award(this.owner, collection);
+
+			player.notify({ type: NotificationType.INFO, message: 'You paid ' + collection + ' to ' + owner.Name });
+			owner.notify({ type: NotificationType.INFO, message: player.Name + ' paid you ' + collection });
+
+			return this.m_landinformationFactory(player, true);
 		}
-		return this.m_landinformationFactory(player, true);
 	}
 
 }

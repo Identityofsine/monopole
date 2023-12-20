@@ -26,7 +26,10 @@ export type BaseResponse = {
 	success: boolean
 }
 
+export type Recipient = 'global' | 'game' | 'player'
+
 export type GameResponse = {
 	response: 'message' | 'respond' | 'update';
+	recipient: Recipient;
 	decision?: DecisionType | DecisionType[];
 } & BaseResponse
