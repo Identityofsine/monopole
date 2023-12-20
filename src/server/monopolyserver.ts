@@ -5,7 +5,7 @@ import { DecisionType, Filter, MonopolyInterface, NotificationEvent } from "../m
 import { Player } from "../monopoly/player";
 import ServerInstance from "./websocket";
 import * as WebSocket from 'ws';
-import { BaseIntent, BaseResponse, ConnectionIntent, GameResponse, ResponseIntent } from "./ws.intent";
+import { BaseIntent, BaseResponse, ConnectionIntent, ErrorResponse, GameResponse, ResponseIntent } from "./ws.intent";
 import { Space } from "../monopoly/space";
 
 interface MonopolyGame {
@@ -51,6 +51,19 @@ export class MonopolyServer implements MonopolyInterface {
 		this.m_setup();
 	}
 
+	private m_sendError(ws: WebSocket, message: string, disconnect: boolean = false): void {
+		const error: ErrorResponse = {
+			success: false,
+			response: 'error',
+			message: message
+		};
+		ws.send(JSON.stringify(error));
+		if (disconnect) {
+			ws.close();
+		}
+		console.log('[monopolyserver] sent error: %s', message, disconnect ? 'and disconnected' : '');
+	}
+
 	private m_connectionStage(ws: WebSocket, data: ConnectionIntent): void {
 		const player_uuid = UUID.generateUUID(15234);
 		if (data.intent === 'create') {
@@ -68,8 +81,32 @@ export class MonopolyServer implements MonopolyInterface {
 				const player = new Player(data.name, player_uuid, undefined, this);
 				this.addPlayer(player, ws, game);
 				this.m_sendGameInformation(data.game_uuid, ws);
+			} else {
+				this.m_sendError(ws, 'Game not found', true);
 			}
 		}
+	}
+
+	private m_handleRolls(data: ResponseIntent, ws: WebSocket, communicationlayer: PlayerCommunicationLayer) {
+		const state = data.state;
+		const dice = communicationlayer.rollDice();
+		ws.send(JSON.stringify(MessageFactory.createMessage('You rolled ' + (dice.dice1 + dice.dice2))));
+
+		if (state === 'turn') {
+			communicationlayer.move(dice.dice1 + dice.dice2);
+		} else if (state === 'jail') {
+			const space = communicationlayer.move(dice.dice1 + dice.dice2, dice.dice1 === dice.dice2);
+			if (space.type === 9) {
+				ws.send(JSON.stringify(MessageFactory.createMessage('You are still in jail')));
+			}
+		} else if (state === 'paying') {
+			/*
+			* TODO: implement utility paying 
+			* ... 
+			* 
+			* */
+		}
+
 	}
 
 	private m_responseStage(data: ResponseIntent, ws: WebSocket): void {
@@ -84,9 +121,7 @@ export class MonopolyServer implements MonopolyInterface {
 
 			const action = data.decision;
 			if (action === 'roll') {
-				const dice = communicationlayer.rollDice();
-				ws.send(JSON.stringify(MessageFactory.createMessage('You rolled ' + (dice.dice1 + dice.dice2))));
-				communicationlayer.move(dice.dice1 + dice.dice2);
+				this.m_handleRolls(data, ws, communicationlayer);
 			} else if (action == 'ignore') {
 				communicationlayer.ignore();
 			} else if (action == 'buy') {
@@ -104,7 +139,6 @@ export class MonopolyServer implements MonopolyInterface {
 		catch (e) {
 			console.log("[monopolyserver] error with response:", data)
 			console.log("Error: " + e);
-
 		}
 	}
 

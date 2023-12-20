@@ -1,6 +1,7 @@
 import { DecisionType } from "../monopoly/monopoly.types"
 
 export type Intents = 'create' | 'join' | 'response'
+export type PlayerState = 'jail' | 'turn' | 'bankrupt' | 'idle' | 'paying'
 
 export type BaseIntent = {
 	intent: Intents
@@ -15,15 +16,22 @@ export type ConnectionIntent = {
 
 export type ResponseIntent = {
 	intent: 'response'
+	state: PlayerState
 	decision: DecisionType
 } & BaseIntent
 
-export type Responses = 'connect' | 'join' | 'respond' | 'message' | 'id' | 'update'
+export type Responses = 'connect' | 'join' | 'respond' | 'message' | 'id' | 'update' | 'error'
 
 export type BaseResponse = {
 	response: Responses;
 	message?: string | Object;
 	success: boolean
+}
+
+export type ErrorResponse = {
+	success: false;
+	response: 'error';
+	message: string;
 }
 
 export type Recipient = 'global' | 'game' | 'player'

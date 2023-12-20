@@ -61,6 +61,7 @@ function connectToServer(_uuid) {
 	let user_uuid = '';
 	let creating_server = uuid?.length <= 0;
 	let connection = new ws(`${connection_object.protocol}://${connection_object.address}`);
+	let injail = false;
 	connection.on('open', () => {
 		console.log('Connection opened');
 	});
@@ -101,6 +102,7 @@ function connectToServer(_uuid) {
 						await askForInput('Roll (Press any key): ');
 						connection.send(JSON.stringify({
 							intent: 'response',
+							state: 'turn',
 							game_uuid: uuid,
 							uuid: user_uuid,
 							decision: 'roll'

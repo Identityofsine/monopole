@@ -63,7 +63,7 @@ export class Monopoly {
 			engine_id: this.UUID,
 			getPlayer: (uuid: UUID.UUID) => this.getPlayer(uuid),
 			move: (player: Player, amount: number) => this.movePlayer(player, amount),
-			sendToJail: (player: Player) => { /*...*/ },
+			sendToJail: (player: Player) => this.jailPlayer(player),
 			sendToSpace: (player: Player, space: Space | number) => { /*...*/ },
 			collect: (player: Player, amount: number) => player.takeMoney(amount),
 			award: (player: Player | UUID.UUID, amount: number) => this.givePlayerMoney(player, amount),
@@ -115,7 +115,7 @@ export class Monopoly {
 
 	}
 
-	public movePlayer(player: Player, spaces: number): Space {
+	public movePlayer(player: Player, spaces: number, unjail: boolean = false): Space {
 		if (player.UUID !== (this.players[this.currentPlayer]?.UUID ?? - 1)) {
 			throw new MonopolyError('Not Player\'s turn');
 		}
@@ -126,10 +126,21 @@ export class Monopoly {
 			console.log('[monopoly] player %s passed go', player.Name);
 		}
 
+		if (!unjail && player.Jail) {
+			player.JailTurns++;
+			if (player.JailTurns === 3) {
+				player.Jail = false;
+				player.JailTurns = 0;
+			}
+			this.stopWaiting();
+			return this.spaces[new_position];
+		} else if (unjail) {
+			player.Jail = false;
+			player.JailTurns = 0;
+		}
+
 		this.stopWaiting();
 		console.log('[monopoly] player %s moved to space %d', player.Name, new_position);
-
-
 
 		const space: Space = this.spaces[new_position];
 		const land_response = space.onLand(player);
@@ -303,7 +314,7 @@ interface CommunicationLayer {
 
 export interface PlayerCommunicationLayer extends CommunicationLayer {
 	rollDice(): Pair;
-	move(amount: number): Space;
+	move(amount: number, unjail?: boolean): Space;
 	buyProperty(): boolean;
 	sellProperty(): boolean;
 	createTrade(player: Player | UUID.UUID, trade: Trade): boolean;
