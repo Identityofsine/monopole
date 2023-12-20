@@ -185,6 +185,7 @@ export class GoToJail extends Space {
 	}
 
 	onLand(player: Player): LandInformation {
+		this.useCommunicationLayer().sendToJail(player);
 		return { space: this, engine_should_wait: false } as LandInformation;
 	}
 

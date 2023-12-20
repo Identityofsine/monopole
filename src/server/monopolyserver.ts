@@ -5,7 +5,7 @@ import { DecisionType, Filter, MonopolyInterface, NotificationEvent } from "../m
 import { Player } from "../monopoly/player";
 import ServerInstance from "./websocket";
 import * as WebSocket from 'ws';
-import { BaseIntent, BaseResponse, ConnectionIntent, ErrorResponse, GameResponse, ResponseIntent } from "./ws.intent";
+import { BaseIntent, BaseResponse, CommandIntent, ConnectionIntent, ErrorResponse, GameResponse, ResponseIntent } from "./ws.intent";
 import { Space } from "../monopoly/space";
 
 interface MonopolyGame {
@@ -29,6 +29,14 @@ namespace MessageFactory {
 			recipient: 'player',
 			message: message,
 			decision: decision,
+		}
+	}
+	export function createUpdate(message: string): GameResponse {
+		return {
+			success: true,
+			response: 'update',
+			recipient: 'global',
+			message: message,
 		}
 	}
 	export function createConnect(message: string): BaseResponse {
@@ -141,6 +149,19 @@ export class MonopolyServer implements MonopolyInterface {
 			console.log("Error: " + e);
 		}
 	}
+
+	private m_handleHostCommand(data: CommandIntent, command: string, ws: WebSocket) {
+		const game = this.getGame(data.game_uuid);
+		if (!game) throw new MonopolyError('No game found');
+		const player_id = data.uuid;
+		if (!player_id) throw new MonopolyError('No player uuid provided');
+		if (game.engine.HostID !== player_id) throw new MonopolyError('Player is not host');
+		if (command === 'start') {
+			game.engine.start();
+			this.broadcast(game, MessageFactory.createUpdate('Game started'));
+		}
+	}
+
 
 	private m_sendUpdate(game: MonopolyGame, player: Player) {
 		const filtered_player: Filter<Player, | 'notify' | 'giveMoney' | 'takeMoney' | 'setPosition' | 'setMonopolyInterface' | 'setCommunicationLayer'> = player;

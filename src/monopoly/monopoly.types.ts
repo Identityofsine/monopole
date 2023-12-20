@@ -58,5 +58,9 @@ export type JailData = {
 export interface MonopolyInterface {
 	onNotification(player: Player, communicationlayer: PlayerCommunicationLayer, notification: NotificationEvent): void;
 	onPlayerAdded(player: Player, engine_id: UUID.UUID): void;
-
 }
+
+export type MonopolyEngineCommands = 'start'
+
+
+

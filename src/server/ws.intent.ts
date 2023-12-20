@@ -1,6 +1,6 @@
-import { DecisionType } from "../monopoly/monopoly.types"
+import { DecisionType, MonopolyEngineCommands } from "../monopoly/monopoly.types"
 
-export type Intents = 'create' | 'join' | 'response'
+export type Intents = 'create' | 'join' | 'response' | 'command'
 export type PlayerState = 'jail' | 'turn' | 'bankrupt' | 'idle' | 'paying'
 
 export type BaseIntent = {
@@ -13,6 +13,12 @@ export type BaseIntent = {
 export type ConnectionIntent = {
 	intent: 'create' | 'join'
 } & BaseIntent
+
+//must be the host
+export type CommandIntent = {
+	intent: 'command'
+	command: MonopolyEngineCommands
+} & Required<BaseIntent>
 
 export type ResponseIntent = {
 	intent: 'response'
