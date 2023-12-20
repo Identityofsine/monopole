@@ -160,7 +160,20 @@ export class Monopoly {
 		const player: Player = this.players[this.currentPlayer];
 
 		this.waitForPlayer(player);
+		//is player in jail?
+		if (player.Jail) {
+			player.JailTurns += 1;
+			player.notify({ type: NotificationType.DECISION, message: 'You are in jail', decision: ['pay', 'roll'] });
+			return;
+		}
 		player.notify({ type: NotificationType.DECISION, message: 'It is your turn', decision: 'roll' });
+	}
+
+	public jailPlayer(player: Player): void {
+		const jailSpace: number = this.spaces.findIndex((space) => space.type === 9);
+		player.setPosition(jailSpace);
+		player.Jail = true;
+		player.notify({ type: NotificationType.DECISION, message: 'You are in jail', decision: ['pay', 'roll'] });
 	}
 
 	public getPlayer(uuid: UUID.UUID): Player | undefined {

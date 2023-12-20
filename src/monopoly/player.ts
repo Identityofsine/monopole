@@ -2,12 +2,12 @@ import { Identifiable, UUID } from "./identifiable";
 import { Pair, PlayerCommunicationLayer } from "./monopoly";
 import { MONOPOLY_CONSTS } from "./monopoly.consts";
 import { MonopolyError } from "./monopoly.error";
-import { NotificationEvent, NotificationType, MonopolyInterface } from "./monopoly.types";
+import { NotificationEvent, NotificationType, MonopolyInterface, JailData } from "./monopoly.types";
 
 export class Player extends Identifiable {
 	private communicationLayer: PlayerCommunicationLayer | undefined = undefined;
 	private monopolyInterface: MonopolyInterface | undefined = undefined;
-	private jail: boolean = false;
+	private jail: JailData = { turns: 0, in_jail: false };
 	private money: number = 800;
 	private properties: UUID.UUID[] = [];
 	private position: number = 0;
@@ -42,12 +42,28 @@ export class Player extends Identifiable {
 		return this.position;
 	}
 
+	public get Jail(): boolean {
+		return this.jail.in_jail;
+	}
+
+	public get JailTurns(): number {
+		return this.jail.turns;
+	}
+
 	public get Money(): number {
 		return this.money;
 	}
 
 	public set Money(money: number) {
 		this.money = money;
+	}
+
+	public set Jail(jail: boolean) {
+		this.jail = { turns: 0, in_jail: jail };
+	}
+
+	public set JailTurns(turns: number) {
+		this.jail.turns = turns;
 	}
 
 	public giveMoney(amount: number): void {

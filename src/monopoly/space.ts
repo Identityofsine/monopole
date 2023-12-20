@@ -157,6 +157,10 @@ export class Go extends Space {
 	}
 
 	onLand(player: Player): LandInformation {
+
+		player.giveMoney(400);
+		player.notify({ type: NotificationType.INFO, message: 'You Landed on Go an extra $200' });
+
 		return { space: this, engine_should_wait: false } as LandInformation;
 	}
 

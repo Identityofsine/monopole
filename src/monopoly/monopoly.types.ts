@@ -41,13 +41,18 @@ export type Filter<A extends Record<string, any>, B extends keyof A> = {
 	[K in Exclude<keyof A, B>]: A[K]
 }
 
-export type DecisionType = 'roll' | 'trade' | 'buy' | 'sell' | 'mortgage' | 'unmortgage' | 'build' | 'demolish' | 'ignore';
+export type DecisionType = 'roll' | 'trade' | 'buy' | 'sell' | 'mortgage' | 'unmortgage' | 'build' | 'demolish' | 'ignore' | 'pay';
 
 export type NotificationEvent = {
 	type: NotificationType;
 	message: string;
 	decision?: DecisionType | DecisionType[];
 	data?: Object;
+}
+
+export type JailData = {
+	turns: number;
+	in_jail: boolean;
 }
 
 export interface MonopolyInterface {
