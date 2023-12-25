@@ -33,7 +33,6 @@ export class WebSocketConnection extends Connection {
 			}
 			this.socket.onmessage = (event: MessageEvent) => {
 				this.emit("message", { type: "message", data: JSON.parse(event.data) });
-				console.log("WebSocketConnection :: WebSocket message received");
 			}
 			this.socket.onclose = (event: CloseEvent) => {
 				this.emit("close", { type: "close", code: event.code, reason: event.reason });
@@ -58,7 +57,8 @@ export class WebSocketConnection extends Connection {
 
 	public send(data: string | ArrayBufferLike | Blob | ArrayBufferView): void {
 		if (!this.socket) {
-			throw new Error("Socket not initialized");
+			console.error("Socket not initialized");
+			return;
 		}
 		this.socket.send(JSON.stringify(data));
 	}

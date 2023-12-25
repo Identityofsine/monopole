@@ -15,10 +15,12 @@ export class ConnectionHandler {
 		if (!this.connection) {
 			throw new Error("Connection not initialized");
 		}
-		this.connection.send({ intent: 'create', name: 'NEXTJS' });
+		this.connection.on("open", (event: Event) => {
+			if (this.connection)
+				this.connection.send({ intent: 'create', name: 'NEXTJS' });
+		});
 		this.connection.on("message", (event: DataEvent) => {
-			console.log("ConnectionHandler :: message received");
-			console.log(event);
+			console.log(event.data);
 		});
 		this.connection.on("close", (event: CloseEvent) => {
 			console.log("ConnectionHandler :: connection closed");
@@ -29,11 +31,12 @@ export class ConnectionHandler {
 		if (!this.connection) {
 			throw new Error("Connection not initialized");
 		}
+
+		this.m_setupConnection();
 		const response = await this.connection.connect();
 		if (!response) {
 			return false;
 		}
-		this.m_setupConnection();
 		return true;
 	}
 
