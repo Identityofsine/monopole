@@ -12,6 +12,7 @@
     "next": "14.0.4",
     "react": "^18",
     "react-dom": "^18",
+    "react-json-view": "^1.21.3",
     "websocket": "^1.0.34",
     "ws": "^8.15.1"
   },

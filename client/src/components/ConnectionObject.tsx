@@ -2,22 +2,21 @@
 
 import { ConnectionHandler } from "@/obj/connectionmanager";
 import { WebSocketConnection } from "@/obj/listener";
-import { useEffect, useRef } from "react";
-
-type Props = {
-	uri: string;
-}
+import { useEffect, useState } from "react";
 
 function useConnectionObject(uri: string) {
 
-	const ref = useRef<ConnectionHandler>();
+	const [connection, setConnectionObject] = useState<ConnectionHandler | null>(null);
 
 	useEffect(() => {
-		if (ref.current) return;
-		ref.current = new ConnectionHandler(new WebSocketConnection(uri));
-	}, [ref.current])
+		if (connection) return;
+		const ws_connect = new WebSocketConnection(uri);
+		const _connection = new ConnectionHandler(ws_connect);
+		setConnectionObject(_connection);
 
-	return ref.current;
+	}, [])
+
+	return connection;
 
 }
 
