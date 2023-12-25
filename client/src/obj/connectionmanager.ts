@@ -3,29 +3,12 @@ import { Connection } from "./connection";
 
 export class ConnectionHandler {
 
-	private static instance: ConnectionHandler;
-
 	private connection: Connection | undefined;
 	private connected: boolean = false;
 
-	private constructor(connection: Connection) {
+	public constructor(connection: Connection) {
 		this.connection = connection;
 		this.connect();
-	}
-
-	public static getInstance(connection: Connection | undefined): ConnectionHandler {
-		if (!ConnectionHandler.instance) {
-			if (!connection) {
-				throw new Error("Connection not initialized, cannot create instance without connection");
-			}
-			ConnectionHandler.instance = new ConnectionHandler(connection);
-			return ConnectionHandler.instance;
-		}
-
-		if (ConnectionHandler.instance.isConnected === false) {
-			ConnectionHandler.instance.connect();
-		}
-		return ConnectionHandler.instance;
 	}
 
 	private m_setupConnection() {
