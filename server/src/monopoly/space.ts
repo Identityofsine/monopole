@@ -1,7 +1,7 @@
 import { Identifiable, UUID } from "./identifiable";
 import { BuildingCommunicationLayer } from "./monopoly";
 import { MonopolyError } from "./monopoly.error";
-import { DecisionType, LandInformation, NotificationType } from "./monopoly.types";
+import { DecisionType, LandInformation, NotificationType } from "shared-types";
 import { Player } from "./player";
 
 export type Rent = number[];

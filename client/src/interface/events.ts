@@ -1,3 +1,4 @@
+import { BaseResponse } from "shared-types";
 import { EventError } from "./eventerror";
 
 export type EventID = string;
@@ -17,7 +18,7 @@ export type ErrorEvent = {
 
 export type DataEvent = {
 	type: string;
-	data: object;
+	data: BaseResponse;
 };
 
 export abstract class Events<T extends string> {
