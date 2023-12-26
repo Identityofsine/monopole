@@ -1,5 +1,5 @@
 import { DataEvent } from "@/interface/events";
-import { Connection } from "./connection";
+import { Connection, ConnectionParams } from "./connection";
 
 export class ConnectionHandler {
 
@@ -8,31 +8,30 @@ export class ConnectionHandler {
 
 	public constructor(connection: Connection) {
 		this.connection = connection;
-		this.connect();
+		this.connect({ intent: 'create', name: 'NEXTJS' });
 	}
 
-	private m_setupConnection() {
+	private m_setupConnection(params: ConnectionParams) {
 		if (!this.connection) {
 			throw new Error("Connection not initialized");
 		}
 		this.connection.on("open", (event: Event) => {
 			if (this.connection)
-				this.connection.send({ intent: 'create', name: 'NEXTJS' });
+				this.connection.send(params);
 		});
 		this.connection.on("message", (event: DataEvent) => {
-			console.log(event.data);
 		});
 		this.connection.on("close", (event: CloseEvent) => {
 			console.log("ConnectionHandler :: connection closed");
 		});
 	}
 
-	public async connect(): Promise<boolean> {
+	public async connect(params: ConnectionParams): Promise<boolean> {
 		if (!this.connection) {
 			throw new Error("Connection not initialized");
 		}
 
-		this.m_setupConnection();
+		this.m_setupConnection(params);
 		const response = await this.connection.connect();
 		if (!response) {
 			return false;
