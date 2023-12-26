@@ -1,0 +1,15 @@
+{
+  "name": "shared-types",
+  "version": "1.0.0",
+  "description": "shared-types between client and server",
+  "main": "index.ts",
+	"types": "index.d.ts",
+  "scripts": {
+    "test": "echo \"NAN\""
+  },
+  "keywords": [
+    "typescript"
+  ],
+  "author": "me",
+  "license": "ISC"
+}
