@@ -3,6 +3,7 @@ import { DecisionType, MonopolyEngineCommands } from "./monopoly.types";
 export type Intents = 'create' | 'join' | 'response' | 'command'
 export type PlayerState = 'jail' | 'turn' | 'bankrupt' | 'idle' | 'paying'
 
+/* Player Sending Message */
 export type BaseIntent = {
 	intent: Intents
 	name: string
@@ -26,6 +27,7 @@ export type ResponseIntent = {
 	decision: DecisionType
 } & BaseIntent
 
+/* Server Sending Message */
 export type Responses = 'connect' | 'join' | 'respond' | 'message' | 'id' | 'update' | 'error'
 
 export type BaseResponse = {
