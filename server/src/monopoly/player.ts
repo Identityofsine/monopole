@@ -2,17 +2,17 @@ import { Identifiable, UUID } from "./identifiable";
 import { Pair, PlayerCommunicationLayer } from "./monopoly";
 import { MONOPOLY_CONSTS } from "./monopoly.consts";
 import { MonopolyError } from "./monopoly.error";
-import { NotificationEvent, NotificationType, MonopolyInterface, JailData } from "./monopoly.types";
+import { NotificationEvent, NotificationType, MonopolyInterface, JailData } from "shared-types";
 
 export class Player extends Identifiable {
 	private communicationLayer: PlayerCommunicationLayer | undefined = undefined;
-	private monopolyInterface: MonopolyInterface | undefined = undefined;
+	private monopolyInterface: MonopolyInterface<PlayerCommunicationLayer> | undefined = undefined;
 	private jail: JailData = { turns: 0, in_jail: false };
 	private money: number = 800;
 	private properties: UUID.UUID[] = [];
 	private position: number = 0;
 
-	constructor(name: string, uuid?: UUID.UUID, communicationLayer?: PlayerCommunicationLayer, monopolyInterface?: MonopolyInterface) {
+	constructor(name: string, uuid?: UUID.UUID, communicationLayer?: PlayerCommunicationLayer, monopolyInterface?: MonopolyInterface<PlayerCommunicationLayer>) {
 		super(name, uuid);
 		if (communicationLayer)
 			this.communicationLayer = communicationLayer;
@@ -24,7 +24,7 @@ export class Player extends Identifiable {
 		this.communicationLayer = communicationLayer;
 	}
 
-	public setMonopolyInterface(monopolyInterface: MonopolyInterface) {
+	public setMonopolyInterface(monopolyInterface: MonopolyInterface<PlayerCommunicationLayer>) {
 		this.monopolyInterface = monopolyInterface;
 	}
 

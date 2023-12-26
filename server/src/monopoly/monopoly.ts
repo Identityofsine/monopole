@@ -87,7 +87,7 @@ export class Monopoly {
 		this.wait.who = '';
 	}
 
-	public addPlayer(player_obj: string | Player, IMonopoly?: MonopolyInterface): void {
+	public addPlayer(player_obj: string | Player, IMonopoly?: MonopolyInterface<PlayerCommunicationLayer>): void {
 		let player: Player | null = null;
 		if (typeof player_obj === 'string') {
 			player = new Player(player_obj, undefined, undefined, IMonopoly);
@@ -270,7 +270,7 @@ export class MonopolyEngine {
 		return this.host_id;
 	}
 
-	public addPlayer(player: Player | string, IMonopoly?: MonopolyInterface): void {
+	public addPlayer(player: Player | string, IMonopoly?: MonopolyInterface<PlayerCommunicationLayer>): void {
 		if (this.gameStarted) throw new MonopolyError('Game already started');
 		this.monopoly.addPlayer(player, IMonopoly);
 	}
@@ -319,7 +319,7 @@ export class MonopolyEngine {
 	}
 }
 
-interface CommunicationLayer {
+export interface CommunicationLayer {
 	engine_id: UUID.UUID;
 }
 

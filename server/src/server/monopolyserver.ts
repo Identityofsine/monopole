@@ -1,12 +1,11 @@
 import { UUID } from "../monopoly/identifiable";
 import { MonopolyEngine, PlayerCommunicationLayer } from "../monopoly/monopoly";
 import { MonopolyError } from "../monopoly/monopoly.error";
-import { DecisionType, Filter, MonopolyInterface, NotificationEvent } from "../monopoly/monopoly.types";
+import { DecisionType, Filter, MonopolyInterface, NotificationEvent } from "shared-types";
 import { Player } from "../monopoly/player";
 import ServerInstance from "./websocket";
 import * as WebSocket from 'ws';
-import { BaseIntent, BaseResponse, CommandIntent, ConnectionIntent, ErrorResponse, GameResponse, ResponseIntent } from "./ws.intent";
-import { Space } from "../monopoly/space";
+import { BaseIntent, BaseResponse, CommandIntent, ConnectionIntent, ErrorResponse, GameResponse, ResponseIntent } from "shared-types";
 
 interface MonopolyGame {
 	engine: MonopolyEngine;
@@ -49,7 +48,7 @@ namespace MessageFactory {
 }
 
 
-export class MonopolyServer implements MonopolyInterface {
+export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLayer> {
 
 	private instance = ServerInstance.getInstance();
 	private games = new Map<UUID.UUID, MonopolyGame>();
