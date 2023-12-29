@@ -3,7 +3,6 @@ import { EventError } from "./eventerror";
 
 export type EventID = string;
 
-
 export type EEvent = {
 	type: string;
 	message?: string;
