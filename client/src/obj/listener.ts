@@ -32,6 +32,7 @@ export class WebSocketConnection extends Connection {
 				console.log("WebSocketConnection :: WebSocket opened");
 			}
 			this.socket.onmessage = (event: MessageEvent) => {
+
 				this.emit("message", { type: "message", data: JSON.parse(event.data) });
 			}
 			this.socket.onclose = (event: CloseEvent) => {

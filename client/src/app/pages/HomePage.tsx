@@ -1,7 +1,7 @@
 'use client';
 import Image from 'next/image'
 import styles from '../page.module.css'
-import useConnectionObject from '@/components/ConnectionObject';
+import useConnectionObject from '@/hooks/ConnectionObject';
 import { useEffect, useState } from 'react';
 import { DataEvent, ErrorEvent } from '@/interface/events';
 import ReactJson from 'react-json-view';

@@ -15,13 +15,11 @@ export class ConnectionHandler {
 		if (!this.connection) {
 			throw new Error("Connection not initialized");
 		}
-		this.connection.on("open", (event: Event) => {
+		this.connection.on("open", (_event: Event) => {
 			if (this.connection)
 				this.connection.send(params);
 		});
-		this.connection.on("message", (event: DataEvent) => {
-		});
-		this.connection.on("close", (event: CloseEvent) => {
+		this.connection.on("close", (_event: CloseEvent) => {
 			console.log("ConnectionHandler :: connection closed");
 		});
 	}
