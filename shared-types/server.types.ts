@@ -34,7 +34,7 @@ export type Responses = 'connect' | 'join' | 'respond' | 'message' | 'id' | 'upd
 //BaseResponse is the response that the server sends to the client, all responses that the server may send inherit from this
 export type BaseResponse = {
 	response: Responses;
-	message?: string | Object;
+	message?: string | object;
 	success: boolean
 }
 

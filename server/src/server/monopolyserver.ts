@@ -223,12 +223,7 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 		game.engine.addPlayer(player, this);
 		game.clients.set(player.UUID, ws as WebSocket);
 
-		const add_player_message: BaseResponse = {
-			response: 'message',
-			message: 'Player added ' + player.Name + ' to game ' + game.engine.ID,
-			success: true,
-		}
-		//this.broadcast(game, add_player_message);
+		this.onPlayerAdded(player, game.engine.ID);
 
 		const id_message: BaseResponse = {
 			response: 'id',
@@ -270,6 +265,14 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 	}
 
 	public onPlayerAdded(player: Player, engine_id: UUID.UUID): void {
-
+		const engine = this.getGame(engine_id);
+		if (!engine) throw new MonopolyError('No engine found');
+		const message: GameResponse = {
+			response: 'update',
+			recipient: 'game',
+			message: { message: 'Player ' + player.Name + ' has joined', object: player },
+			success: true,
+		}
+		this.broadcast(engine, message);
 	}
 }
