@@ -9,11 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
-		"shared-types": "file:../shared-types",
     "next": "14.0.4",
     "react": "^18",
     "react-dom": "^18",
     "react-json-view": "^1.21.3",
+    "sass": "^1.69.7",
+    "shared-types": "file:../shared-types",
     "websocket": "^1.0.34",
     "ws": "^8.15.1"
   },
