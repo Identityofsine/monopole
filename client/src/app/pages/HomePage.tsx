@@ -5,6 +5,7 @@ import useConnectionObject from '@/hooks/ConnectionObject';
 import { useEffect, useState } from 'react';
 import { DataEvent, ErrorEvent } from '@/interface/events';
 import ReactJson from 'react-json-view';
+import RowOrganizer from '../components/board/RowOrganizer';
 
 function HomePage() {
 
@@ -37,14 +38,7 @@ function HomePage() {
 			</div>
 
 			<div className={styles.center}>
-				<Image
-					className={styles.logo}
-					src="/next.svg"
-					alt="Next.js Logo"
-					width={180}
-					height={37}
-					priority
-				/>
+				<RowOrganizer row_height={30} rows={4} spaces={0} />
 			</div>
 
 			<div className={styles.grid}>

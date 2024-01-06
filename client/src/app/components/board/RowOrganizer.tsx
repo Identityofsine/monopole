@@ -16,7 +16,7 @@ function Row(props: RowProps) {
 	)
 }
 
-type RowOrganizerProps = {
+export type RowOrganizerProps = {
 	spaces: any;
 	rows: number;
 	row_height: number;
