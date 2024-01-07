@@ -17,9 +17,9 @@ export namespace UUID {
 	}
 }
 
-export abstract class Identifiable {
+export class Identifiable {
 	protected uuid: UUID.UUID = UUID.generateUUID(5323);
-	protected name: string;
+	public name: string;
 	constructor(name: string, uuid?: UUID.UUID) {
 		this.name = name;
 		if (uuid) {

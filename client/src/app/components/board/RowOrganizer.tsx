@@ -1,6 +1,6 @@
 import { Identifiable } from "shared-types";
 import "../../styles/row.scss";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ReactGenerateMultiple, ReactGenerateSingle } from "@/util/ReactCreator";
 import Space from "./Space";
 import { SpaceProps } from "./types";
@@ -41,41 +41,52 @@ function RowOrganizer(props: RowOrganizerProps) {
 
 	const ref = useRef<HTMLDivElement>(null);
 	const dimensions = useRef({ width: 0, height: 0 });
-	const spaces = useRef<SpaceOrganizer<SpaceProps>>({ top: [], bottom: [], left: [], right: [] });
+	const [spaces, setSpace] = useState<SpaceOrganizer<SpaceProps>>({ top: [], bottom: [], left: [], right: [] });
 
 	useEffect(() => {
 		//TODO: Have this update on window resize
 		if (!ref.current) return;
 		dimensions.current.width = ref.current.clientWidth;
 		dimensions.current.height = ref.current.clientHeight;
+	}, [])
+
+	useEffect(() => {
 		sortSpaces();
-	}, [ref])
+	}, [props.spaces]);
+
+	function pushSpaces(spot: keyof SpaceOrganizer<SpaceProps>, spaces: SpaceProps) {
+		setSpace((old_state) => {
+			const new_state = { ...old_state };
+			new_state[spot].push(spaces);
+			return new_state;
+		})
+	}
 
 	function sortSpaces() {
-		spaces.current = { top: [], bottom: [], left: [], right: [] };
 		if (!props.spaces) return;
+		setSpace({ top: [], bottom: [], left: [], right: [] });
 		props.spaces?.forEach((space, idx) => {
 			//ugly code
 			let space_prop: SpaceProps = {
-				name: space.Name,
+				name: space.name,
 				color: { name: 'red', hex: 'red' }
 			}
 			if (idx <= 11) {
 				if (idx === 0 || idx === 11) {
 					space_prop.big = true;
 				}
-				spaces.current.top.push(space_prop);
+				pushSpaces('top', space_prop);
 			} else if (idx > 11 && idx < 20) {
 				space_prop.vertical = true;
-				spaces.current.right.push(space_prop);
+				pushSpaces('right', space_prop);
 			} else if (idx >= 20 && idx <= 31) {
 				if (idx === 20 || idx === 31) {
 					space_prop.big = true;
 				}
-				spaces.current.bottom.push(space_prop);
+				pushSpaces('bottom', space_prop);
 			} else {
 				space_prop.vertical = true;
-				spaces.current.left.push(space_prop);
+				pushSpaces('left', space_prop);
 			}
 		});
 	}
@@ -83,12 +94,12 @@ function RowOrganizer(props: RowOrganizerProps) {
 
 	return (
 		<div id="row-container" ref={ref}>
-			<Row type='row' elements={ReactGenerateMultiple<SpaceProps>(Space, spaces.current.top, spaces.current.top.length)} height={props.row_height} />
+			<Row type='row' elements={ReactGenerateMultiple<SpaceProps>(Space, spaces.top, spaces.top.length)} height={props.row_height} />
 			<div className="row space-between middle">
-				<Row type='column' elements={ReactGenerateMultiple<SpaceProps>(Space, spaces.current.left, spaces.current.left.length)} height={props.row_height} />
-				<Row type='column-reverse' elements={ReactGenerateMultiple<SpaceProps>(Space, spaces.current.right, spaces.current.right.length)} height={props.row_height} />
+				<Row type='column' elements={ReactGenerateMultiple<SpaceProps>(Space, spaces.left, spaces.left.length)} height={props.row_height} />
+				<Row type='column-reverse' elements={ReactGenerateMultiple<SpaceProps>(Space, spaces.right, spaces.right.length)} height={props.row_height} />
 			</div>
-			<Row type='row' elements={ReactGenerateMultiple<SpaceProps>(Space, spaces.current.bottom, spaces.current.bottom.length)} height={props.row_height} />
+			<Row type='row' elements={ReactGenerateMultiple<SpaceProps>(Space, spaces.bottom, spaces.bottom.length)} height={props.row_height} />
 		</div>
 	)
 }
