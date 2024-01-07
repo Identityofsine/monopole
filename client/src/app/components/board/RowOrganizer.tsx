@@ -1,3 +1,4 @@
+import { Identifiable } from "shared-types";
 import "../../styles/row.scss";
 
 type RowDirection = "row" | "column" | "row-reverse" | "column-reverse";
@@ -18,7 +19,7 @@ function Row(props: RowProps) {
 }
 
 export type RowOrganizerProps = {
-	spaces: any;
+	spaces: Identifiable[];
 	rows: number;
 	row_height: number;
 };
