@@ -41,7 +41,7 @@ function RowOrganizer(props: RowOrganizerProps) {
 
 	const ref = useRef<HTMLDivElement>(null);
 	const dimensions = useRef({ width: 0, height: 0 });
-	const spaces = useRef<SpaceOrganizer<Identifiable>>({ top: [], bottom: [], left: [], right: [] });
+	const spaces = useRef<SpaceOrganizer<SpaceProps>>({ top: [], bottom: [], left: [], right: [] });
 
 	useEffect(() => {
 		//TODO: Have this update on window resize
@@ -56,14 +56,26 @@ function RowOrganizer(props: RowOrganizerProps) {
 		if (!props.spaces) return;
 		props.spaces?.forEach((space, idx) => {
 			//ugly code
-			if (idx < 10) {
-				spaces.current.top.push(space);
-			} else if (idx < 20) {
-				spaces.current.bottom.push(space);
-			} else if (idx < 30) {
-				spaces.current.left.push(space);
+			let space_prop: SpaceProps = {
+				name: space.Name,
+				color: { name: 'red', hex: 'red' }
+			}
+			if (idx <= 11) {
+				if (idx === 0 || idx === 11) {
+					space_prop.big = true;
+				}
+				spaces.current.top.push(space_prop);
+			} else if (idx > 11 && idx < 20) {
+				space_prop.vertical = true;
+				spaces.current.right.push(space_prop);
+			} else if (idx >= 20 && idx <= 31) {
+				if (idx === 20 || idx === 31) {
+					space_prop.big = true;
+				}
+				spaces.current.bottom.push(space_prop);
 			} else {
-				spaces.current.right.push(space);
+				space_prop.vertical = true;
+				spaces.current.left.push(space_prop);
 			}
 		});
 	}
@@ -71,12 +83,12 @@ function RowOrganizer(props: RowOrganizerProps) {
 
 	return (
 		<div id="row-container" ref={ref}>
-			<Row type='row' elements={ReactGenerateMultiple<SpaceProps>(Space, { name: 'Anal Way', color: { 'name': 'red', hex: 'red' } }, 11)} height={props.row_height} />
+			<Row type='row' elements={ReactGenerateMultiple<SpaceProps>(Space, spaces.current.top, spaces.current.top.length)} height={props.row_height} />
 			<div className="row space-between middle">
-				<Row type='column' elements={ReactGenerateMultiple<SpaceProps>(Space, { name: 'Anal Way', color: { 'name': 'red', hex: 'red' }, vertical: true }, 9)} height={props.row_height} />
-				<Row type='column-reverse' elements={ReactGenerateMultiple<SpaceProps>(Space, { name: 'Anal Way', color: { 'name': 'red', hex: 'red' }, vertical: true }, 9)} height={props.row_height} />
+				<Row type='column' elements={ReactGenerateMultiple<SpaceProps>(Space, spaces.current.left, spaces.current.left.length)} height={props.row_height} />
+				<Row type='column-reverse' elements={ReactGenerateMultiple<SpaceProps>(Space, spaces.current.right, spaces.current.right.length)} height={props.row_height} />
 			</div>
-			<Row type='row' elements={ReactGenerateMultiple<SpaceProps>(Space, { name: 'Anal Way', color: { 'name': 'red', hex: 'red' } }, 11)} height={props.row_height} />
+			<Row type='row' elements={ReactGenerateMultiple<SpaceProps>(Space, spaces.current.bottom, spaces.current.bottom.length)} height={props.row_height} />
 		</div>
 	)
 }
