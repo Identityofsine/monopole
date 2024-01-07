@@ -1,4 +1,4 @@
-import { Identifiable, UUID } from "./identifiable";
+import { Identifiable, UUID } from "shared-types";
 import { BuildingCommunicationLayer } from "./monopoly";
 import { MonopolyError } from "./monopoly.error";
 import { DecisionType, LandInformation, NotificationType } from "shared-types";
