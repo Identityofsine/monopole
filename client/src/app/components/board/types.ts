@@ -6,4 +6,6 @@ export type Color = {
 export type SpaceProps = {
 	name: string;
 	color: Color;
+	vertical?: boolean;
+	big?: boolean;
 };

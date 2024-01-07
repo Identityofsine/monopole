@@ -1,7 +1,6 @@
-import { UUID } from "../monopoly/identifiable";
 import { MonopolyEngine, PlayerCommunicationLayer } from "../monopoly/monopoly";
 import { MonopolyError } from "../monopoly/monopoly.error";
-import { DecisionType, Filter, MonopolyInterface, NotificationEvent } from "shared-types";
+import { DecisionType, UUID, Filter, MonopolyInterface, NotificationEvent } from "shared-types";
 import { Player } from "../monopoly/player";
 import ServerInstance from "./websocket";
 import * as WebSocket from 'ws';

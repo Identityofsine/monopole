@@ -1,4 +1,45 @@
 #row-container {
+	position: relative;
 	width: 100%;
 	height: 100%;
+
+	.middle {
+		height: 100%;
+		width: 100%;
+	}
+}
+
+.space-between {
+	justify-content: space-between;
+}
+
+.row,
+.column,
+.column-reverse,
+.row-reverse {
+	display: flex;
+	background-color: red;
+}
+
+.column,
+.column-reverse {
+	height: 100%;
+	background-color: blue;
+}
+
+.row,
+.row-reverse {
+	width: 100%;
+}
+
+.column {
+	flex-direction: column;
+}
+
+.column-reverse {
+	flex-direction: column-reverse;
+}
+
+.row-reverse {
+	flex-direction: row-reverse;
 }

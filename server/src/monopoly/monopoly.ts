@@ -1,7 +1,6 @@
 import { cachePath, castSpace } from "../json/loader";
-import { UUID } from "./identifiable";
 import { MonopolyError } from "./monopoly.error";
-import { DecisionType, Filter, MonopolyEngineCommands, MonopolyInterface, NotificationType, Trade, WaitObject } from "shared-types";
+import { UUID, DecisionType, Filter, MonopolyEngineCommands, MonopolyInterface, NotificationType, Trade, WaitObject } from "shared-types";
 import { Player } from "./player";
 import { Property, Space } from "./space";
 
