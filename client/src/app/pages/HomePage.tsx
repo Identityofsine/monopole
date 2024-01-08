@@ -73,7 +73,9 @@ function HomePage() {
 			</div>
 
 			<div className={styles.center}>
-				<RowOrganizer row_height={20} rows={4} spaces={spaces} />
+				<RowOrganizer row_height={20} rows={4} spaces={spaces}>
+					<h2>ROLL</h2>
+				</RowOrganizer>
 			</div>
 
 		</main>

@@ -28,6 +28,7 @@ export type RowOrganizerProps = {
 	spaces: Identifiable[];
 	rows: number;
 	row_height: number;
+	children?: React.ReactNode;
 };
 
 type SpaceOrganizer<T extends object> = {
@@ -71,16 +72,16 @@ function RowOrganizer(props: RowOrganizerProps) {
 				name: space.name,
 				color: { name: 'red', hex: 'red' }
 			}
-			if (idx <= 11) {
-				if (idx === 0 || idx === 11) {
+			if (idx < 11) {
+				if (idx === 0 || idx === 10) {
 					space_prop.big = true;
 				}
 				pushSpaces('top', space_prop);
 			} else if (idx > 11 && idx < 20) {
 				space_prop.vertical = true;
 				pushSpaces('right', space_prop);
-			} else if (idx >= 20 && idx <= 31) {
-				if (idx === 20 || idx === 31) {
+			} else if (idx >= 20 && idx < 31) {
+				if (idx === 20 || idx === 30) {
 					space_prop.big = true;
 				}
 				pushSpaces('bottom', space_prop);
@@ -97,6 +98,9 @@ function RowOrganizer(props: RowOrganizerProps) {
 			<Row type='row' elements={ReactGenerateMultiple<SpaceProps>(Space, spaces.top, spaces.top.length)} height={props.row_height} />
 			<div className="row space-between middle">
 				<Row type='column' elements={ReactGenerateMultiple<SpaceProps>(Space, spaces.left, spaces.left.length)} height={props.row_height} />
+				<div className="center">
+					{props.children}
+				</div>
 				<Row type='column-reverse' elements={ReactGenerateMultiple<SpaceProps>(Space, spaces.right, spaces.right.length)} height={props.row_height} />
 			</div>
 			<Row type='row' elements={ReactGenerateMultiple<SpaceProps>(Space, spaces.bottom, spaces.bottom.length)} height={props.row_height} />

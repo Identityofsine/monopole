@@ -9,3 +9,7 @@ export type SpaceProps = {
 	vertical?: boolean;
 	big?: boolean;
 };
+
+export type PieceProps = {
+
+};
