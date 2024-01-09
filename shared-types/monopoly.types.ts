@@ -1,11 +1,20 @@
 declare type UUID = string;
 
-declare type Player = {
-
+declare type Identifiable = {
+	id: UUID;
+	name: string;
 }
 
-declare type Space = {
+export type Player = Identifiable & {
+	uuid: UUID;
+	name: string;
+	money: number;
+	position: number;
+}
 
+export type Space = Identifiable & {
+	buildings?: number;
+	onLand?: (...args: any) => void;
 }
 
 export type Trade = {

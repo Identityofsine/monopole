@@ -1,54 +1,34 @@
 'use client';
 import styles from '../page.module.css'
 import useConnectionObject from '@/hooks/ConnectionObject';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { DataEvent, ErrorEvent } from '@/interface/events';
 import ReactJson from 'react-json-view';
 import RowOrganizer from '../components/board/RowOrganizer';
-import { BaseResponse, GameResponse, Identifiable } from 'shared-types';
+import { BaseResponse, GameResponse, Identifiable, Player, Space } from 'shared-types';
+import { GameHandler, SpaceHandle } from '@/util/GameUpdater';
+
+
+export type PlayerHoldableSpace = Space & {
+	players: Player[];
+}
 
 function HomePage() {
 
 	const connection = useConnectionObject("ws://localhost:8337/");
 	const [text, setText] = useState<object[]>([]);
-	const [spaces, setSpaces] = useState<Identifiable[]>([]);
+	const [spaces, setSpaces] = useState<PlayerHoldableSpace[]>([]);
+	const space_handler = useRef<GameHandler>(SpaceHandle.create(setSpaces));
 
 
-	//move to util
-	function isGameUpdate(event: BaseResponse) {
-		const mutated = event as GameResponse;
-		return mutated.recipient !== undefined;
-	}
-
-	function isMessageObject(event: BaseResponse) {
-		return typeof event.message !== 'string';
-	}
-
-	function updatePlayers(message: { host: string, players: Identifiable[], spaces: Identifiable[] }) {
-		//TODO: clean up
-	}
-
-	function updateSpaces(message: { host: string, players: Identifiable[], spaces: Identifiable[] }) {
-		if (!message.spaces) return;
-		setSpaces(message.spaces);
-	}
-
-	function handleGameUpdate(event: GameResponse) {
-		if (isMessageObject(event)) {
-			const message = event.message as { message: string, object: any };
-			updateSpaces(message.object);
-		} else {
-			//some other stuff i guess
-		}
-	}
 
 	useEffect(() => {
 		if (!connection) return;
 		connection.Connection.on("message", (event: DataEvent) => {
-			//please clean
-			if (isGameUpdate(event.data)) {
+			const space_functions = space_handler.current;
+			if (space_functions.isGameUpdate(event.data)) {
 				const game_event = event.data as GameResponse;
-				handleGameUpdate(game_event);
+				space_functions.handleGameUpdate(game_event);
 			}
 			setText((old_text) => {
 				return [...old_text, event.data];
