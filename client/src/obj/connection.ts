@@ -13,3 +13,8 @@ export abstract class Connection extends Events<WebSocketEvent> {
 	abstract connect(): Promise<boolean>;
 	abstract close(code?: number, reason?: string): void;
 }
+
+export interface ConnectionInterface {
+	send(data: BaseIntent): void;
+
+}

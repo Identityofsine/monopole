@@ -1,6 +1,7 @@
 import { PlayerHoldableSpace } from "@/app/pages/HomePage";
+import { Connection, ConnectionInterface } from "@/obj/connection";
 import { Dispatch, SetStateAction } from "react";
-import { BaseResponse, ExpectedMessages, GameResponse, Identifiable, Player, Space } from "shared-types";
+import { BaseIntent, BaseResponse, ExpectedMessages, GameResponse, Identifiable, Player, Space } from "shared-types";
 
 
 //TODO: move to shared-types
@@ -48,6 +49,7 @@ interface GameUpdaterCommunicationLayer {
 	getSpacesState: ReactUpdate<PlayerHoldableSpace[]>;
 	getPlayersState: ReactUpdate<Player>;
 	getWorldState: ReactUpdate<"">;
+	send: (message: BaseIntent) => void;
 }
 
 enum GameUpdaterStatesEnum {
@@ -55,7 +57,6 @@ enum GameUpdaterStatesEnum {
 	PLAYER = 1,
 	WORLD = 2,
 }
-
 
 /**
  * GameUpdater
@@ -66,7 +67,7 @@ export class GameUpdater implements GameHandler {
 	private states: GameUpdaterStates[] = [];
 	private spaceHandle: SpaceHandle;
 
-	private constructor(spaceState: ReactUpdate<PlayerHoldableSpace[]>, playerState?: ReactUpdate<Player>, worldState?: ReactUpdate<''>) {
+	private constructor(private connection: ConnectionInterface, spaceState: ReactUpdate<PlayerHoldableSpace[]>, playerState?: ReactUpdate<Player>, worldState?: ReactUpdate<''>) {
 		this.states.push(spaceState);
 		if (playerState) {
 			this.states.push(playerState);
@@ -82,12 +83,13 @@ export class GameUpdater implements GameHandler {
 		return {
 			getSpacesState: this.states[GameUpdaterStatesEnum.SPACE] as ReactUpdate<PlayerHoldableSpace[]>,
 			getPlayersState: this.states[GameUpdaterStatesEnum.PLAYER] as ReactUpdate<Player>,
-			getWorldState: this.states[GameUpdaterStatesEnum.WORLD] as ReactUpdate<"">
+			getWorldState: this.states[GameUpdaterStatesEnum.WORLD] as ReactUpdate<"">,
+			send: (data: BaseIntent) => this?.connection.send.bind(this.connection)(data)
 		}
 	}
 
-	public static create(spaceState: ReactUpdate<PlayerHoldableSpace[]>, playerState?: ReactUpdate<Player>, worldState?: ReactUpdate<''>): GameUpdater {
-		return new GameUpdater(spaceState, playerState, worldState);
+	public static create(connection: ConnectionInterface, spaceState: ReactUpdate<PlayerHoldableSpace[]>, playerState?: ReactUpdate<Player>, worldState?: ReactUpdate<''>): GameUpdater {
+		return new GameUpdater(connection, spaceState, playerState, worldState);
 	}
 
 	public isGameUpdate(event: BaseResponse): boolean {
@@ -181,6 +183,13 @@ export class SpaceHandle {
 
 		return true;
 	}
+
+}
+
+export class PlayerHandle {
+
+	public constructor(private m_gcl: GameUpdaterCommunicationLayer) { }
+
 
 }
 

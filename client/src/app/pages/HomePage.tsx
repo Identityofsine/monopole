@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { DataEvent, ErrorEvent } from '@/interface/events';
 import ReactJson from 'react-json-view';
 import RowOrganizer from '../components/board/RowOrganizer';
-import { BaseResponse, GameResponse, Identifiable, Player, Space, UUID } from 'shared-types';
+import { BaseIntent, BaseResponse, GameResponse, Identifiable, Player, Space, UUID } from 'shared-types';
 import { GameHandler, GameUpdater, SpaceHandle } from '@/util/GameUpdater';
 
 
@@ -14,13 +14,21 @@ export type PlayerHoldableSpace = Space & {
 	players: Player[];
 }
 
+
+
 function HomePage() {
 
 	const connection = useConnectionObject("ws://localhost:8337/");
+
 	const [uuid, setUUID] = useState<UUID.UUID>("");
 	const [text, setText] = useState<object[]>([]);
 	const [spaces, setSpaces] = useState<PlayerHoldableSpace[]>([]);
-	const space_handler = useRef<GameHandler>(GameUpdater.create(setSpaces));
+
+	const game_updater = useRef<GameHandler>(GameUpdater.create({
+		send: (intent: BaseIntent) => {
+			connection?.Connection.send(intent);
+		}
+	}, setSpaces));
 
 	useEffect(() => {
 		if (!connection) return;
@@ -35,10 +43,10 @@ function HomePage() {
 					return;
 			}
 
-			const space_functions = space_handler.current;
-			if (space_functions.isGameUpdate(event.data)) {
+			const game_functions = game_updater.current;
+			if (game_functions.isGameUpdate(event.data)) {
 				const game_event = event.data as GameResponse;
-				space_functions.handleGameUpdate(game_event);
+				game_functions.handleGameUpdate(game_event);
 			}
 			setText((old_text) => {
 				return [...old_text, event.data];

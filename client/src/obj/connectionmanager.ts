@@ -1,5 +1,7 @@
 import { DataEvent } from "@/interface/events";
 import { Connection, ConnectionParams } from "./connection";
+import { BaseIntent } from "shared-types";
+
 
 export class ConnectionHandler {
 
@@ -26,6 +28,13 @@ export class ConnectionHandler {
 		return ConnectionHandler.instance;
 	}
 
+	public send(message: BaseIntent): void {
+		if (!this.connection) {
+			throw new Error("Connection not initialized");
+		}
+		this.connection.send(message);
+	}
+
 	private m_setupConnection(name: string, uuid?: string) {
 		if (!this.connection) {
 			throw new Error("Connection not initialized");
@@ -37,7 +46,7 @@ export class ConnectionHandler {
 			packet.game_uuid = uuid;
 		}
 
-		this.connection.send(packet);
+		this.send(packet);
 		this.connection.on("message", (event: DataEvent) => {
 			console.log("ConnectionHandler :: message received");
 			console.log(event);
