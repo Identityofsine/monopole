@@ -51,9 +51,9 @@ interface GameUpdaterCommunicationLayer {
 }
 
 enum GameUpdaterStatesEnum {
-	SPACE,
-	PLAYER,
-	WORLD,
+	SPACE = 0,
+	PLAYER = 1,
+	WORLD = 2,
 }
 
 
@@ -64,7 +64,7 @@ enum GameUpdaterStatesEnum {
 export class GameUpdater implements GameHandler {
 
 	private states: GameUpdaterStates[] = [];
-	private spaceHandle: SpaceHandle = new SpaceHandle(this.m_GCLFactory());
+	private spaceHandle: SpaceHandle;
 
 	private constructor(spaceState: ReactUpdate<PlayerHoldableSpace[]>, playerState?: ReactUpdate<Player>, worldState?: ReactUpdate<''>) {
 		this.states.push(spaceState);
@@ -74,6 +74,8 @@ export class GameUpdater implements GameHandler {
 		if (worldState) {
 			this.states.push(worldState);
 		}
+		//this must execute after the states are set
+		this.spaceHandle = new SpaceHandle(this.m_GCLFactory.bind(this)());
 	}
 
 	private m_GCLFactory(): GameUpdaterCommunicationLayer {
@@ -145,7 +147,7 @@ export class SpaceHandle {
 				space.players.push(player);
 			}
 		}
-		this.m_gcl.getSpacesState(spaces);
+		this.m_gcl?.getSpacesState(spaces);
 		return true;
 	}
 

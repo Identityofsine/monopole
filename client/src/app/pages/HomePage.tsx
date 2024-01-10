@@ -24,7 +24,7 @@ function HomePage() {
 
 	useEffect(() => {
 		if (!connection) return;
-		connection.connect("sex", "46dabcbd-57d7-qac6-47a-e11bfa4a4a4e");
+		connection.connect("sex");
 		connection.Connection.on("message", (event: DataEvent) => {
 
 			if (event.data.response = "id") {
