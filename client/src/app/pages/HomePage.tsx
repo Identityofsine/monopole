@@ -47,9 +47,13 @@ function HomePage() {
 		connection.connect("sex");
 		connection.Connection.on("message", (event: DataEvent) => {
 
-			if (event.data.response = "id") {
-				console.log(event.data);
-				const ids: GameID = event.data?.message as any;
+			if (event.data.response === "id") {
+				const data = event.data as BaseResponse;
+				if (typeof data.message === 'string') return;
+
+				if (data.message?.message !== "JUST_JOINED") return;
+
+				const ids: GameID = data.message?.object as any;
 				if (ids)
 					uuid.current = ids;
 				else

@@ -261,7 +261,7 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 			response: 'respond',
 			recipient: 'player',
 			decision: notification.decision,
-			message: { message: notification.message, object: notification.data },
+			message: { message: notification.message, object: notification?.data ?? {} },
 			success: true,
 		}
 		socket.send(JSON.stringify(message));

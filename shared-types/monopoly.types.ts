@@ -55,7 +55,7 @@ export type NotificationEvent = {
 	type: NotificationType;
 	message: ExpectedMessages;
 	decision?: DecisionType | DecisionType[];
-	data?: Object;
+	data?: object;
 }
 
 export type JailData = {
