@@ -1,5 +1,6 @@
 'use client';
 
+import { Connection } from "@/obj/connection";
 import { ConnectionHandler } from "@/obj/connectionmanager";
 import { WebSocketConnection } from "@/obj/listener";
 import { useEffect, useState } from "react";
@@ -10,8 +11,8 @@ function useConnectionObject(uri: string) {
 
 	useEffect(() => {
 		if (connection) return;
-		const ws_connect = new WebSocketConnection(uri);
-		const _connection = new ConnectionHandler(ws_connect);
+		const ws_connect: Connection = new WebSocketConnection(uri);
+		const _connection = ConnectionHandler.getInstance(ws_connect);
 		setConnectionObject(_connection);
 
 	}, [])

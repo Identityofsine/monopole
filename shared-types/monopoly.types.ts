@@ -1,3 +1,5 @@
+import { ExpectedMessages } from "./server.types";
+
 declare type UUID = string;
 
 declare type Identifiable = {
@@ -31,13 +33,6 @@ export type WaitObject = {
 	notification?: NotificationEvent;
 }
 
-export type LandInformation = {
-	space: Space;
-	owner?: UUID;
-	rent?: number; //current rent
-	decision?: DecisionType | DecisionType[];
-	engine_should_wait: boolean;
-}
 
 export enum NotificationType {
 	INFO,
@@ -58,7 +53,7 @@ export type DecisionType = 'roll' | 'trade' | 'buy' | 'sell' | 'mortgage' | 'unm
 
 export type NotificationEvent = {
 	type: NotificationType;
-	message: string;
+	message: ExpectedMessages;
 	decision?: DecisionType | DecisionType[];
 	data?: Object;
 }
@@ -68,12 +63,5 @@ export type JailData = {
 	in_jail: boolean;
 }
 
-export interface MonopolyInterface<T extends object> {
-	onNotification(player: Player, communicationlayer: T, notification: NotificationEvent): void;
-	onPlayerAdded(player: Player, engine_id: UUID): void;
-}
 
 export type MonopolyEngineCommands = 'start'
-
-
-

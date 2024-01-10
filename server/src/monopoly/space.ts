@@ -1,7 +1,8 @@
 import { Identifiable, UUID } from "shared-types";
 import { BuildingCommunicationLayer } from "./monopoly";
 import { MonopolyError } from "./monopoly.error";
-import { DecisionType, LandInformation, NotificationType } from "shared-types";
+import { DecisionType, NotificationType } from "shared-types";
+import { LandInformation } from "./types";
 import { Player } from "./player";
 
 export type Rent = number[];
@@ -80,8 +81,8 @@ export class Property extends Space {
 			if (owner === undefined) throw new MonopolyError('Owner not found')
 			this.useCommunicationLayer().award(this.owner, collection);
 
-			player.notify({ type: NotificationType.INFO, message: 'You paid ' + collection + ' to ' + owner.Name });
-			owner.notify({ type: NotificationType.INFO, message: player.Name + ' paid you ' + collection });
+			player.notify({ type: NotificationType.INFO, message: 'STATUS_UPDATE' });
+			owner.notify({ type: NotificationType.INFO, message: 'STATUS_UPDATE' });
 
 			return this.m_landinformationFactory(player, true);
 		}
@@ -159,7 +160,7 @@ export class Go extends Space {
 	onLand(player: Player): LandInformation {
 
 		player.giveMoney(400);
-		player.notify({ type: NotificationType.INFO, message: 'You Landed on Go an extra $200' });
+		player.notify({ type: NotificationType.INFO, message: 'PLAYER_UPDATED' });
 
 		return { space: this, engine_should_wait: false } as LandInformation;
 	}

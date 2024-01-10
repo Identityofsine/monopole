@@ -1,8 +1,9 @@
 import { cachePath, castSpace } from "../json/loader";
 import { MonopolyError } from "./monopoly.error";
-import { UUID, DecisionType, Filter, MonopolyEngineCommands, MonopolyInterface, NotificationType, Trade, WaitObject } from "shared-types";
+import { UUID, DecisionType, Filter, NotificationType, Trade, WaitObject } from "shared-types";
 import { Player } from "./player";
 import { Property, Space } from "./space";
+import { MonopolyEngineCommands, MonopolyInterface } from "./types";
 
 export class Pair {
 	dice1: number;
@@ -154,7 +155,7 @@ export class Monopoly {
 				land_response.decision = [land_response.decision];
 			}
 			const decisions: DecisionType[] = [...land_response.decision, ...general_decisions];
-			player.notify({ type: NotificationType.DECISION, message: 'You are on space ' + new_position, decision: decisions, data: space })
+			player.notify({ type: NotificationType.DECISION, message: 'TURN_UPDATE', decision: decisions, data: { position: player.Position, ...space } })
 			this.waitForPlayer(player);
 		}
 
@@ -173,17 +174,17 @@ export class Monopoly {
 		//is player in jail?
 		if (player.Jail) {
 			player.JailTurns += 1;
-			player.notify({ type: NotificationType.DECISION, message: 'You are in jail', decision: ['pay', 'roll'] });
+			player.notify({ type: NotificationType.DECISION, message: 'JAIL_UPDATE', decision: ['pay', 'roll'] });
 			return;
 		}
-		player.notify({ type: NotificationType.DECISION, message: 'It is your turn', decision: 'roll' });
+		player.notify({ type: NotificationType.DECISION, message: 'TURN_UPDATE', decision: 'roll' });
 	}
 
 	public jailPlayer(player: Player): void {
 		const jailSpace: number = this.spaces.findIndex((space) => space.type === 9);
 		player.setPosition(jailSpace);
 		player.Jail = true;
-		player.notify({ type: NotificationType.DECISION, message: 'You are in jail', decision: ['pay', 'roll'] });
+		player.notify({ type: NotificationType.DECISION, message: 'JAIL_UPDATE', decision: ['pay', 'roll'] });
 	}
 
 	public getPlayer(uuid: UUID.UUID): Player | undefined {

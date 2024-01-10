@@ -1,6 +1,5 @@
 .space {
 	width: 12%;
-	height: 100%;
 	background-color: #fff;
 	outline: 1px solid #000;
 
@@ -18,5 +17,9 @@
 		font-size: .7rem;
 		color: black;
 		text-align: center;
+	}
+
+	.margin-top-auto {
+		margin-top: 50%;
 	}
 }

@@ -1,7 +1,8 @@
 import { Pair, PlayerCommunicationLayer } from "./monopoly";
 import { MONOPOLY_CONSTS } from "./monopoly.consts";
 import { MonopolyError } from "./monopoly.error";
-import { Identifiable, UUID, NotificationEvent, NotificationType, MonopolyInterface, JailData } from "shared-types";
+import { Identifiable, UUID, NotificationEvent, NotificationType, JailData } from "shared-types";
+import { MonopolyInterface } from "./types";
 
 export class Player extends Identifiable {
 	private communicationLayer: PlayerCommunicationLayer | undefined = undefined;

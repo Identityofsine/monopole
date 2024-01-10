@@ -3,37 +3,60 @@ import { Connection, ConnectionParams } from "./connection";
 
 export class ConnectionHandler {
 
+	private static instance: ConnectionHandler;
+
 	private connection: Connection | undefined;
 	private connected: boolean = false;
 
-	public constructor(connection: Connection) {
+	private constructor(connection: Connection) {
 		this.connection = connection;
-		this.connect({ intent: 'create', name: 'NEXTJS' });
 	}
 
-	private m_setupConnection(params: ConnectionParams) {
+	public static getInstance(connection: Connection | undefined): ConnectionHandler {
+		if (!ConnectionHandler.instance) {
+			if (!connection) {
+				throw new Error("Connection not initialized, cannot create instance without connection");
+			}
+			ConnectionHandler.instance = new ConnectionHandler(connection);
+			return ConnectionHandler.instance;
+		}
+
+		if (ConnectionHandler.instance.isConnected === false) {
+		}
+		return ConnectionHandler.instance;
+	}
+
+	private m_setupConnection(name: string, uuid?: string) {
 		if (!this.connection) {
 			throw new Error("Connection not initialized");
 		}
-		this.connection.on("open", (_event: Event) => {
-			if (this.connection)
-				this.connection.send(params);
+
+		let packet: ConnectionParams = { intent: 'create', name: name };
+		if (uuid) {
+			packet.intent = 'join';
+			packet.uuid = uuid;
+		}
+
+		this.connection.send(packet);
+		this.connection.on("message", (event: DataEvent) => {
+			console.log("ConnectionHandler :: message received");
+			console.log(event);
 		});
-		this.connection.on("close", (_event: CloseEvent) => {
+		this.connection.on("close", (event: CloseEvent) => {
 			console.log("ConnectionHandler :: connection closed");
+
 		});
 	}
 
-	public async connect(params: ConnectionParams): Promise<boolean> {
+	public async connect(name: string, game_uuid?: string): Promise<boolean> {
 		if (!this.connection) {
 			throw new Error("Connection not initialized");
 		}
-
-		this.m_setupConnection(params);
 		const response = await this.connection.connect();
 		if (!response) {
 			return false;
 		}
+		this.m_setupConnection(name, game_uuid);
 		return true;
 	}
 

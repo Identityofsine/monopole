@@ -1,6 +1,7 @@
 import { EventError } from "@/interface/eventerror";
 import { DataEvent, ErrorEvent, EEvent, Events } from "@/interface/events";
 import { Connection } from "./connection";
+import { BaseIntent } from "shared-types";
 
 
 export type WebSocketEvent = "open" | "close" | "message" | "error";
@@ -56,7 +57,7 @@ export class WebSocketConnection extends Connection {
 		return await this.m_setupSocket();
 	}
 
-	public send(data: string | ArrayBufferLike | Blob | ArrayBufferView): void {
+	public send(data: string | BaseIntent): void {
 		if (!this.socket) {
 			console.error("Socket not initialized");
 			return;

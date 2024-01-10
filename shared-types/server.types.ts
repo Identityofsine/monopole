@@ -31,10 +31,14 @@ export type ResponseIntent = {
 export type Responses = 'connect' | 'join' | 'respond' | 'message' | 'id' | 'update' | 'error'
 
 
+//Expected Messages expected from the client
+export type ExpectedMessages = "HOST_OPTIONS" | "PLAYER_JOINED" | "STATUS_UPDATE" | "PLAYER_UPDATED" | "GAME_UPDATE" | "ROLL_UPDATE" | "TURN_UPDATE" | "JAIL_UPDATE" | "MONEY_UPDATE"
+
+
 //BaseResponse is the response that the server sends to the client, all responses that the server may send inherit from this
 export type BaseResponse = {
 	response: Responses;
-	message?: string | object;
+	message?: string | { object: object, message: ExpectedMessages } | object /* TODO: REMOVE OBJECT */;
 	success: boolean
 }
 

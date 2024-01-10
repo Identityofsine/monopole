@@ -1,10 +1,11 @@
 import { MonopolyEngine, PlayerCommunicationLayer } from "../monopoly/monopoly";
 import { MonopolyError } from "../monopoly/monopoly.error";
-import { DecisionType, UUID, Filter, MonopolyInterface, NotificationEvent } from "shared-types";
+import { DecisionType, UUID, Filter, NotificationEvent } from "shared-types";
 import { Player } from "../monopoly/player";
 import ServerInstance from "./websocket";
 import * as WebSocket from 'ws';
 import { BaseIntent, BaseResponse, CommandIntent, ConnectionIntent, ErrorResponse, GameResponse, ResponseIntent } from "shared-types";
+import { MonopolyInterface } from "../monopoly/types";
 
 interface MonopolyGame {
 	engine: MonopolyEngine;
@@ -81,7 +82,10 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 				this.m_sendGameInformation(uuid, ws);
 			}
 		} else if (data.intent === 'join') {
-			if (!data.game_uuid) throw new MonopolyError('No game uuid provided');
+			if (!data.game_uuid) {
+				this.m_sendError(ws, 'No UUID Provided', true);
+				return;
+			}
 			const game = this.getGame(data.game_uuid);
 			if (game) {
 				const player = new Player(data.name, player_uuid, undefined, this);
@@ -167,7 +171,7 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 		const update: GameResponse = {
 			response: 'update',
 			recipient: 'game',
-			message: { message: 'Player ' + filtered_player.Name + ' has updated', object: filtered_player },
+			message: { message: 'PLAYER_UPDATED', object: filtered_player },
 			success: true,
 		}
 		this.broadcast(game, update);
@@ -269,7 +273,7 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 		const message: GameResponse = {
 			response: 'update',
 			recipient: 'game',
-			message: { message: 'Player ' + player.Name + ' has joined', object: player },
+			message: { message: 'PLAYER_JOINED', object: player },
 			success: true,
 		}
 		this.broadcast(engine, message);

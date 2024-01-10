@@ -1,5 +1,6 @@
 import { PlayerHoldableSpace } from "@/app/pages/HomePage";
-import { BaseResponse, GameResponse, Identifiable, Player, Space } from "shared-types";
+import { Dispatch, SetStateAction } from "react";
+import { BaseResponse, ExpectedMessages, GameResponse, Identifiable, Player, Space } from "shared-types";
 
 
 //TODO: move to shared-types
@@ -8,6 +9,8 @@ export type GlobalUpdateStruct = {
 	players: Player[],
 	spaces: Space[]
 }
+
+export type PlayerConnectionStruct = Player;
 
 class Optional<T> {
 	constructor(public value: T | undefined) { }
@@ -31,11 +34,19 @@ export interface GameHandler {
 	castObject(message: object): Optional<GlobalUpdateStruct>;
 }
 
+export enum GameUpdateType {
+	CONNECTION,
+	PLAYER,
+	SPACE
+}
+
+type ReactUpdate = Dispatch<SetStateAction<PlayerHoldableSpace[]>>
+
 export class SpaceHandle implements GameHandler {
 
-	private constructor(private setState: (state: PlayerHoldableSpace[]) => void) { }
+	private constructor(private setState: ReactUpdate) { }
 
-	public static create(setState: (state: PlayerHoldableSpace[]) => void): GameHandler {
+	public static create(setState: ReactUpdate): GameHandler {
 		return new SpaceHandle(setState);
 	}
 
@@ -53,9 +64,9 @@ export class SpaceHandle implements GameHandler {
 	}
 
 
-	public updateSpaces(message: GlobalUpdateStruct): void {
-		if (!message.spaces) return;
-		if (!message.players) return;
+	public updateSpaces(message: GlobalUpdateStruct): boolean {
+		if (!message.spaces) return false;
+		if (!message.players) return false;
 		let spaces: PlayerHoldableSpace[] = message.spaces.map((space: Space) => {
 			return {
 				...space,
@@ -69,12 +80,30 @@ export class SpaceHandle implements GameHandler {
 			}
 		}
 		this.setState(spaces);
+		return true;
+	}
+
+	private newPlayerJoined(message: PlayerConnectionStruct): boolean {
+		if (!message?.position && message?.name && !message?.uuid) return false;
+		this.setState((old_space) => {
+			const new_space = [...old_space];
+			const space = new_space[message.position];
+			if (space) {
+				space.players.push(message);
+			}
+			return new_space;
+		});
+
+		return true;
 	}
 
 	public handleGameUpdate(event: GameResponse): void {
 		if (this.isMessageObject(event)) {
-			const message = event.message as { message: string, object: any };
-			this.updateSpaces(message.object);
+			const message = event.message as { message: ExpectedMessages, object: any };
+			if (this.updateSpaces(message.object)) return;
+			if (message.message === 'PLAYER_JOINED') {
+				this.newPlayerJoined(message.object);
+			}
 		} else {
 			//some other stuff i guess
 		}

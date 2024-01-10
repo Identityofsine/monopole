@@ -1,7 +1,7 @@
 #row-container {
 	position: relative;
 	width: 100%;
-	height: 100%;
+	height: fit-content;
 
 	.middle {
 		height: 100%;
@@ -9,9 +9,6 @@
 	}
 }
 
-.space-between {
-	justify-content: space-between;
-}
 
 .row,
 .column,
