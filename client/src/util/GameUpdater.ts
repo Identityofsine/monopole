@@ -83,13 +83,30 @@ export class SpaceHandle implements GameHandler {
 		return true;
 	}
 
-	private newPlayerJoined(message: PlayerConnectionStruct): boolean {
+
+	private playerChanged(message: PlayerConnectionStruct): boolean {
 		if (!message?.position && message?.name && !message?.uuid) return false;
 		this.setState((old_space) => {
+
 			const new_space = [...old_space];
-			const space = new_space[message.position];
-			if (space) {
-				space.players.push(message);
+			//clear old player
+			const old_space_players_index = new_space.findIndex((space) => {
+				return space.players.find((player) => {
+					return player.uuid === message.uuid;
+				}) !== undefined;
+			})
+
+			if (old_space_players_index !== -1) {
+				const old_space_players = new_space[old_space_players_index].players;
+				const new_players = old_space_players.filter((player) => {
+					return player.uuid !== message.uuid;
+				});
+				new_space[old_space_players_index].players = new_players;
+			}
+
+			const cur_space = new_space[message.position];
+			if (cur_space) {
+				cur_space.players.push(message);
 			}
 			return new_space;
 		});
@@ -101,8 +118,8 @@ export class SpaceHandle implements GameHandler {
 		if (this.isMessageObject(event)) {
 			const message = event.message as { message: ExpectedMessages, object: any };
 			if (this.updateSpaces(message.object)) return;
-			if (message.message === 'PLAYER_JOINED') {
-				this.newPlayerJoined(message.object);
+			if (message.message === 'PLAYER_JOINED' || message.message === 'PLAYER_UPDATED') {
+				this.playerChanged(message.object);
 			}
 		} else {
 			//some other stuff i guess

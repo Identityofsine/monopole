@@ -34,7 +34,7 @@ export class ConnectionHandler {
 		let packet: ConnectionParams = { intent: 'create', name: name };
 		if (uuid) {
 			packet.intent = 'join';
-			packet.uuid = uuid;
+			packet.game_uuid = uuid;
 		}
 
 		this.connection.send(packet);

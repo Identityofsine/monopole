@@ -5,7 +5,7 @@ import { BaseIntent } from "shared-types";
 export type ConnectionParams = {
 	intent: 'join' | 'create',
 	name: string
-	uuid?: string
+	game_uuid?: string
 }
 
 export abstract class Connection extends Events<WebSocketEvent> {

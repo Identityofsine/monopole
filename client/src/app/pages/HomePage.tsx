@@ -24,14 +24,14 @@ function HomePage() {
 
 	useEffect(() => {
 		if (!connection) return;
-		connection.connect("sex");
+		connection.connect("sex", "93ae15d3-20d1-q68d-108-cbabeec1c097");
 		connection.Connection.on("message", (event: DataEvent) => {
 
 			if (event.data.response = "id") {
 				const ids: { game_uuid: UUID.UUID, player_uuid: UUID.UUID } = event.data?.message as any;
 				if (ids)
 					setUUID(ids.player_uuid);
-				console.log(ids);
+				return;
 			}
 
 			const space_functions = space_handler.current;
