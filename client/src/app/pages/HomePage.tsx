@@ -35,7 +35,7 @@ function HomePage() {
 		if (!connection) return;
 
 		//connect to server
-		connection.connect("sex", "61418811-2313-q7b5-944-1c5558d4d522");
+		connection.connect("sex", "019a973d-34d8-q23b-8be-91afc8e8f806");
 
 		//init gameupdater
 		game_updater.current = GameUpdater.create({
@@ -99,7 +99,7 @@ function HomePage() {
 
 			<div className={styles.center}>
 				<RowOrganizer row_height={20} rows={4} spaces={spaces}>
-					<h2 className="pointer" onClick={() => { game_updater.current.roll() }}>ROLL</h2>
+					<h2 className="pointer" onClick={() => { game_updater.current?.roll() }}>ROLL</h2>
 				</RowOrganizer>
 			</div>
 
