@@ -1,7 +1,7 @@
 import { PlayerHoldableSpace } from "@/app/pages/HomePage";
 import { Connection, ConnectionInterface } from "@/obj/connection";
 import { Dispatch, SetStateAction } from "react";
-import { BaseIntent, BaseResponse, ExpectedMessages, GameResponse, Identifiable, Player, Space } from "shared-types";
+import { BaseIntent, BaseResponse, ExpectedMessages, GameResponse, Identifiable, Player, ResponseIntent, Space } from "shared-types";
 
 
 //TODO: move to shared-types
@@ -49,6 +49,8 @@ interface GameUpdaterCommunicationLayer {
 	getSpacesState: ReactUpdate<PlayerHoldableSpace[]>;
 	getPlayersState: ReactUpdate<Player>;
 	getWorldState: ReactUpdate<"">;
+	getUUID: () => string;
+	getGameUUID: () => string;
 	send: (message: BaseIntent) => void;
 }
 
@@ -190,6 +192,15 @@ export class PlayerHandle {
 
 	public constructor(private m_gcl: GameUpdaterCommunicationLayer) { }
 
+	public roll() {
+		const intent_block: ResponseIntent = {
+			intent: 'response',
+			state: 'turn',
+			decision: 'roll',
+
+		}
+		this.m_gcl.send();
+	}
 
 }
 

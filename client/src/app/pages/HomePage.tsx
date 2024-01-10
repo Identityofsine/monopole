@@ -14,20 +14,31 @@ export type PlayerHoldableSpace = Space & {
 	players: Player[];
 }
 
+type GameID = {
+	game_uuid: UUID.UUID,
+	player_uuid: UUID.UUID
+}
 
 
 function HomePage() {
 
 	const connection = useConnectionObject("ws://localhost:8337/");
 
-	const [uuid, setUUID] = useState<UUID.UUID>("");
+	const [uuid, setUUID] = useState<GameID>({ game_uuid: "", player_uuid: "" });
 	const [text, setText] = useState<object[]>([]);
 	const [spaces, setSpaces] = useState<PlayerHoldableSpace[]>([]);
 
 	const game_updater = useRef<GameHandler>(GameUpdater.create({
 		send: (intent: BaseIntent) => {
 			connection?.Connection.send(intent);
+		},
+		getUUID: () => {
+			return uuid.player_uuid;
+		},
+		getGameUUID: () => {
+			return uuid.game_uuid;
 		}
+
 	}, setSpaces));
 
 	useEffect(() => {
@@ -36,9 +47,9 @@ function HomePage() {
 		connection.Connection.on("message", (event: DataEvent) => {
 
 			if (event.data.response = "id") {
-				const ids: { game_uuid: UUID.UUID, player_uuid: UUID.UUID } = event.data?.message as any;
+				const ids: GameID = event.data?.message as any;
 				if (ids)
-					setUUID(ids.player_uuid);
+					setUUID(ids);
 				else
 					return;
 			}
