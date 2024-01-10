@@ -33,6 +33,7 @@ export class Monopoly {
 		who: '',
 	}
 	private currentPlayer: number = -1;
+	private didCurrentPlayerRoll: boolean = false;
 
 	public constructor(uuid?: UUID.UUID) {
 		this.UUID = uuid ?? UUID.generateUUID(15234);
@@ -48,7 +49,8 @@ export class Monopoly {
 	public m_PCLFactory(player: Player): PlayerCommunicationLayer {
 		return {
 			engine_id: this.UUID,
-			rollDice: () => Pair.roll(),
+			alreadyRolled: () => this.didCurrentPlayerRoll,
+			rollDice: () => { this.didCurrentPlayerRoll = true; return Pair.roll(); },
 			move: (amount: number) => this.movePlayer(player, amount),
 			buyProperty: () => this.buyProperty(player),
 			sellProperty: () => this.sellProperty(player),
@@ -72,8 +74,12 @@ export class Monopoly {
 		}
 	}
 
-	private isWaiting(): boolean {
+	public isWaiting(): boolean {
 		return this.wait.waiting;
+	}
+
+	public get didRoll(): boolean {
+		return this.didCurrentPlayerRoll;
 	}
 
 	private waitForPlayer(player: Player): void {
@@ -164,6 +170,7 @@ export class Monopoly {
 
 	public nextTurn(): void {
 		if (this.isWaiting()) return;
+		this.didCurrentPlayerRoll = false;
 		if (this.currentPlayer === -1)
 			this.currentPlayer = 0;
 		else
@@ -325,6 +332,7 @@ export interface CommunicationLayer {
 
 export interface PlayerCommunicationLayer extends CommunicationLayer {
 	rollDice(): Pair;
+	alreadyRolled(): boolean;
 	move(amount: number, unjail?: boolean): Space;
 	buyProperty(): boolean;
 	sellProperty(): boolean;

@@ -89,8 +89,8 @@ function connectToServer(_uuid) {
 		if (messageObject?.response === 'id') {
 
 			//message: { player_uuid: player.UUID, game_uuid: game.engine.ID },
-			user_uuid = messageObject.message.player_uuid;
-			uuid = messageObject.message.game_uuid;
+			user_uuid = messageObject.message.object.player_uuid;
+			uuid = messageObject.message.object.game_uuid;
 			console.log(`User UUID: ${user_uuid}`);
 			if (!creating_server) return;
 			await askForInput('Press any key to start...');

@@ -28,25 +28,31 @@ function HomePage() {
 	const [text, setText] = useState<object[]>([]);
 	const [spaces, setSpaces] = useState<PlayerHoldableSpace[]>([]);
 
-	const game_updater = useRef<GameHandler>(GameUpdater.create({
-		send: (intent: BaseIntent) => {
-			connection?.Connection.send(intent);
-		},
-		getUUID: (() => {
-			console.log(uuid);
-			return uuid.current.player_uuid;
-		}).bind(uuid),
-		getGameUUID: (() => {
-			return uuid.current.game_uuid;
-		}).bind(uuid)
 
-	}, setSpaces));
+	const game_updater = useRef<GameHandler>();
 
 	useEffect(() => {
 		if (!connection) return;
-		connection.connect("sex");
+
+		//connect to server
+		connection.connect("sex", "61418811-2313-q7b5-944-1c5558d4d522");
+
+		//init gameupdater
+		game_updater.current = GameUpdater.create({
+			send: ((intent: BaseIntent) => {
+				connection.send(intent);
+			}),
+			getUUID: (() => {
+				return uuid.current.player_uuid;
+			}).bind(uuid),
+			getGameUUID: (() => {
+				return uuid.current.game_uuid;
+			}).bind(uuid)
+		}, setSpaces)
+
 		connection.Connection.on("message", (event: DataEvent) => {
 
+			//check messages
 			if (event.data.response === "id") {
 				const data = event.data as BaseResponse;
 				if (typeof data.message === 'string') return;
@@ -60,7 +66,10 @@ function HomePage() {
 					return;
 			}
 
+			//check if gameUpdater is initialized
 			const game_functions = game_updater.current;
+			if (!game_functions) throw new Error("Game updater not initialized");
+
 			if (game_functions.isGameUpdate(event.data)) {
 				const game_event = event.data as GameResponse;
 				game_functions.handleGameUpdate(game_event);

@@ -87,9 +87,9 @@ export class GameUpdater implements GameHandler {
 			getSpacesState: this.states[GameUpdaterStatesEnum.SPACE] as ReactUpdate<PlayerHoldableSpace[]>,
 			getPlayersState: this.states[GameUpdaterStatesEnum.PLAYER] as ReactUpdate<Player>,
 			getWorldState: this.states[GameUpdaterStatesEnum.WORLD] as ReactUpdate<"">,
-			getUUID: () => this?.connection.getUUID.bind(this.connection)(),
-			getGameUUID: () => this?.connection.getGameUUID.bind(this.connection)(),
-			send: (data: BaseIntent) => this?.connection.send.bind(this.connection)(data)
+			getUUID: () => this.connection.getUUID.bind(this.connection)(),
+			getGameUUID: () => this.connection.getGameUUID.bind(this.connection)(),
+			send: (data: BaseIntent) => { this.connection.send.bind(this.connection)(data) }
 		}
 	}
 
@@ -204,7 +204,6 @@ export class PlayerHandle {
 			uuid: this.m_gcl.getUUID(),
 			game_uuid: this.m_gcl.getGameUUID()
 		}
-		console.log(intent_block)
 		this.m_gcl.send(intent_block);
 	}
 

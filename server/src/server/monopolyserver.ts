@@ -131,6 +131,10 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 
 			const action = data.decision;
 			if (action === 'roll') {
+				if (engine.engine.Monopoly.didRoll) {
+					this.m_sendError(ws, 'You are waiting for a decision, please wait', false);
+					return;
+				}
 				this.m_handleRolls(data, ws, communicationlayer);
 			} else if (action == 'ignore') {
 				communicationlayer.ignore();

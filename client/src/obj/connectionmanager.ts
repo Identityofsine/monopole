@@ -32,6 +32,7 @@ export class ConnectionHandler {
 		if (!this.connection) {
 			throw new Error("Connection not initialized");
 		}
+		console.log("message sent!");
 		this.connection.send(message);
 	}
 
