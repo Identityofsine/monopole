@@ -24,7 +24,7 @@ function HomePage() {
 
 	const connection = useConnectionObject("ws://localhost:8337/");
 
-	const [uuid, setUUID] = useState<GameID>({ game_uuid: "", player_uuid: "" });
+	const uuid = useRef<GameID>({ game_uuid: "", player_uuid: "" });
 	const [text, setText] = useState<object[]>([]);
 	const [spaces, setSpaces] = useState<PlayerHoldableSpace[]>([]);
 
@@ -32,12 +32,13 @@ function HomePage() {
 		send: (intent: BaseIntent) => {
 			connection?.Connection.send(intent);
 		},
-		getUUID: () => {
-			return uuid.player_uuid;
-		},
-		getGameUUID: () => {
-			return uuid.game_uuid;
-		}
+		getUUID: (() => {
+			console.log(uuid);
+			return uuid.current.player_uuid;
+		}).bind(uuid),
+		getGameUUID: (() => {
+			return uuid.current.game_uuid;
+		}).bind(uuid)
 
 	}, setSpaces));
 
@@ -47,9 +48,10 @@ function HomePage() {
 		connection.Connection.on("message", (event: DataEvent) => {
 
 			if (event.data.response = "id") {
+				console.log(event.data);
 				const ids: GameID = event.data?.message as any;
 				if (ids)
-					setUUID(ids);
+					uuid.current = ids;
 				else
 					return;
 			}
@@ -84,7 +86,7 @@ function HomePage() {
 
 			<div className={styles.center}>
 				<RowOrganizer row_height={20} rows={4} spaces={spaces}>
-					<h2>ROLL</h2>
+					<h2 className="pointer" onClick={() => { game_updater.current.roll() }}>ROLL</h2>
 				</RowOrganizer>
 			</div>
 

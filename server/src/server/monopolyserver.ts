@@ -230,7 +230,7 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 
 		const id_message: BaseResponse = {
 			response: 'id',
-			message: { player_uuid: player.UUID, game_uuid: game.engine.ID },
+			message: { message: 'JUST_JOINED', object: { player_uuid: player.UUID, game_uuid: game.engine.ID } },
 			success: true,
 		}
 		ws.send(JSON.stringify(id_message));

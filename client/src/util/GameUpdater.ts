@@ -29,10 +29,9 @@ class Optional<T> {
 export interface GameHandler {
 	isGameUpdate(event: BaseResponse): boolean;
 	isMessageObject(event: BaseResponse): boolean;
-	updatePlayers(message: GlobalUpdateStruct): void;
-	updateSpaces(message: GlobalUpdateStruct): void;
 	handleGameUpdate(event: GameResponse): void;
 	castObject(message: object): Optional<GlobalUpdateStruct>;
+	roll(): void;
 }
 
 export enum GameUpdateType {
@@ -68,6 +67,7 @@ export class GameUpdater implements GameHandler {
 
 	private states: GameUpdaterStates[] = [];
 	private spaceHandle: SpaceHandle;
+	private playerHandle: PlayerHandle;
 
 	private constructor(private connection: ConnectionInterface, spaceState: ReactUpdate<PlayerHoldableSpace[]>, playerState?: ReactUpdate<Player>, worldState?: ReactUpdate<''>) {
 		this.states.push(spaceState);
@@ -79,6 +79,7 @@ export class GameUpdater implements GameHandler {
 		}
 		//this must execute after the states are set
 		this.spaceHandle = new SpaceHandle(this.m_GCLFactory.bind(this)());
+		this.playerHandle = new PlayerHandle(this.m_GCLFactory.bind(this)());
 	}
 
 	private m_GCLFactory(): GameUpdaterCommunicationLayer {
@@ -86,6 +87,8 @@ export class GameUpdater implements GameHandler {
 			getSpacesState: this.states[GameUpdaterStatesEnum.SPACE] as ReactUpdate<PlayerHoldableSpace[]>,
 			getPlayersState: this.states[GameUpdaterStatesEnum.PLAYER] as ReactUpdate<Player>,
 			getWorldState: this.states[GameUpdaterStatesEnum.WORLD] as ReactUpdate<"">,
+			getUUID: () => this?.connection.getUUID.bind(this.connection)(),
+			getGameUUID: () => this?.connection.getGameUUID.bind(this.connection)(),
 			send: (data: BaseIntent) => this?.connection.send.bind(this.connection)(data)
 		}
 	}
@@ -103,10 +106,6 @@ export class GameUpdater implements GameHandler {
 		return typeof event.message !== 'string';
 	}
 
-	public updatePlayers(message: GlobalUpdateStruct): void {
-		//TODO: something?
-	}
-
 	public updateSpaces(message: GlobalUpdateStruct): boolean {
 		return this.spaceHandle.updateSpaces(message);
 	}
@@ -121,6 +120,10 @@ export class GameUpdater implements GameHandler {
 		} else {
 			//some other stuff i guess
 		}
+	}
+
+	public roll(): void {
+		this.playerHandle.roll();
 	}
 
 	public castObject(message: object): Optional<GlobalUpdateStruct> {
@@ -197,9 +200,12 @@ export class PlayerHandle {
 			intent: 'response',
 			state: 'turn',
 			decision: 'roll',
-
+			name: 'roll',
+			uuid: this.m_gcl.getUUID(),
+			game_uuid: this.m_gcl.getGameUUID()
 		}
-		this.m_gcl.send();
+		console.log(intent_block)
+		this.m_gcl.send(intent_block);
 	}
 
 }
