@@ -7,7 +7,7 @@ import { DataEvent, ErrorEvent } from '@/interface/events';
 import ReactJson from 'react-json-view';
 import RowOrganizer from '../components/board/RowOrganizer';
 import { BaseResponse, GameResponse, Identifiable, Player, Space, UUID } from 'shared-types';
-import { GameHandler, SpaceHandle } from '@/util/GameUpdater';
+import { GameHandler, GameUpdater, SpaceHandle } from '@/util/GameUpdater';
 
 
 export type PlayerHoldableSpace = Space & {
@@ -20,18 +20,19 @@ function HomePage() {
 	const [uuid, setUUID] = useState<UUID.UUID>("");
 	const [text, setText] = useState<object[]>([]);
 	const [spaces, setSpaces] = useState<PlayerHoldableSpace[]>([]);
-	const space_handler = useRef<GameHandler>(SpaceHandle.create(setSpaces));
+	const space_handler = useRef<GameHandler>(GameUpdater.create(setSpaces));
 
 	useEffect(() => {
 		if (!connection) return;
-		connection.connect("sex", "93ae15d3-20d1-q68d-108-cbabeec1c097");
+		connection.connect("sex", "46dabcbd-57d7-qac6-47a-e11bfa4a4a4e");
 		connection.Connection.on("message", (event: DataEvent) => {
 
 			if (event.data.response = "id") {
 				const ids: { game_uuid: UUID.UUID, player_uuid: UUID.UUID } = event.data?.message as any;
 				if (ids)
 					setUUID(ids.player_uuid);
-				return;
+				else
+					return;
 			}
 
 			const space_functions = space_handler.current;

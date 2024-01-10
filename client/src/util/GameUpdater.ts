@@ -40,14 +40,52 @@ export enum GameUpdateType {
 	SPACE
 }
 
-type ReactUpdate = Dispatch<SetStateAction<PlayerHoldableSpace[]>>
+type ReactUpdate<T> = Dispatch<SetStateAction<T>>
+type GameUpdaterStates = ReactUpdate<PlayerHoldableSpace[]> | ReactUpdate<Player> | ReactUpdate<"">;
 
-export class SpaceHandle implements GameHandler {
 
-	private constructor(private setState: ReactUpdate) { }
+interface GameUpdaterCommunicationLayer {
+	getSpacesState: ReactUpdate<PlayerHoldableSpace[]>;
+	getPlayersState: ReactUpdate<Player>;
+	getWorldState: ReactUpdate<"">;
+}
 
-	public static create(setState: ReactUpdate): GameHandler {
-		return new SpaceHandle(setState);
+enum GameUpdaterStatesEnum {
+	SPACE,
+	PLAYER,
+	WORLD,
+}
+
+
+/**
+ * GameUpdater
+ * @summary {GameUpdater is a class that handles the game update logic by containing the state of the game and subclasses that are responsible for Space, Player, and World events}
+ */
+export class GameUpdater implements GameHandler {
+
+	private states: GameUpdaterStates[] = [];
+	private spaceHandle: SpaceHandle = new SpaceHandle(this.m_GCLFactory());
+
+	private constructor(spaceState: ReactUpdate<PlayerHoldableSpace[]>, playerState?: ReactUpdate<Player>, worldState?: ReactUpdate<''>) {
+		this.states.push(spaceState);
+		if (playerState) {
+			this.states.push(playerState);
+		}
+		if (worldState) {
+			this.states.push(worldState);
+		}
+	}
+
+	private m_GCLFactory(): GameUpdaterCommunicationLayer {
+		return {
+			getSpacesState: this.states[GameUpdaterStatesEnum.SPACE] as ReactUpdate<PlayerHoldableSpace[]>,
+			getPlayersState: this.states[GameUpdaterStatesEnum.PLAYER] as ReactUpdate<Player>,
+			getWorldState: this.states[GameUpdaterStatesEnum.WORLD] as ReactUpdate<"">
+		}
+	}
+
+	public static create(spaceState: ReactUpdate<PlayerHoldableSpace[]>, playerState?: ReactUpdate<Player>, worldState?: ReactUpdate<''>): GameUpdater {
+		return new GameUpdater(spaceState, playerState, worldState);
 	}
 
 	public isGameUpdate(event: BaseResponse): boolean {
@@ -60,9 +98,37 @@ export class SpaceHandle implements GameHandler {
 	}
 
 	public updatePlayers(message: GlobalUpdateStruct): void {
-		//TODO: implement
+		//TODO: something?
 	}
 
+	public updateSpaces(message: GlobalUpdateStruct): boolean {
+		return this.spaceHandle.updateSpaces(message);
+	}
+
+	public handleGameUpdate(event: GameResponse): void {
+		if (this.isMessageObject(event)) {
+			const message = event.message as { message: ExpectedMessages, object: any };
+			if (this.updateSpaces(message.object as GlobalUpdateStruct)) return;
+			if (message.message === 'PLAYER_JOINED' || message.message === 'PLAYER_UPDATED') {
+				this.spaceHandle.playerChanged(message.object);
+			}
+		} else {
+			//some other stuff i guess
+		}
+	}
+
+	public castObject(message: object): Optional<GlobalUpdateStruct> {
+		const casted = message as GlobalUpdateStruct;
+		if (casted?.host && casted?.players && casted?.spaces) {
+			return new Optional(casted);
+		}
+		return new Optional<GlobalUpdateStruct>(undefined);
+	}
+}
+
+export class SpaceHandle {
+
+	public constructor(private m_gcl: GameUpdaterCommunicationLayer) { }
 
 	public updateSpaces(message: GlobalUpdateStruct): boolean {
 		if (!message.spaces) return false;
@@ -79,14 +145,14 @@ export class SpaceHandle implements GameHandler {
 				space.players.push(player);
 			}
 		}
-		this.setState(spaces);
+		this.m_gcl.getSpacesState(spaces);
 		return true;
 	}
 
 
-	private playerChanged(message: PlayerConnectionStruct): boolean {
+	public playerChanged(message: PlayerConnectionStruct): boolean {
 		if (!message?.position && message?.name && !message?.uuid) return false;
-		this.setState((old_space) => {
+		this.m_gcl.getSpacesState((old_space) => {
 
 			const new_space = [...old_space];
 			//clear old player
@@ -114,57 +180,5 @@ export class SpaceHandle implements GameHandler {
 		return true;
 	}
 
-	public handleGameUpdate(event: GameResponse): void {
-		if (this.isMessageObject(event)) {
-			const message = event.message as { message: ExpectedMessages, object: any };
-			if (this.updateSpaces(message.object)) return;
-			if (message.message === 'PLAYER_JOINED' || message.message === 'PLAYER_UPDATED') {
-				this.playerChanged(message.object);
-			}
-		} else {
-			//some other stuff i guess
-		}
-	}
-
-	public castObject(message: object): Optional<GlobalUpdateStruct> {
-		const casted = message as GlobalUpdateStruct;
-		if (casted?.host && casted?.players && casted?.spaces) {
-			return new Optional(casted);
-		}
-		return new Optional<GlobalUpdateStruct>(undefined);
-	}
-
-
 }
 
-
-
-/**
-//move to util
-function isGameUpdate(event: BaseResponse) {
-	const mutated = event as GameResponse;
-	return mutated.recipient !== undefined;
-}
-
-function isMessageObject(event: BaseResponse) {
-	return typeof event.message !== 'string';
-}
-
-function updatePlayers(message: { host: string, players: Identifiable[], spaces: Identifiable[] }) {
-	//TODO: clean up
-}
-
-function updateSpaces(message: { host: string, players: Identifiable[], spaces: Identifiable[] }) {
-	if (!message.spaces) return;
-	setSpaces(message.spaces);
-}
-
-function handleGameUpdate(event: GameResponse) {
-	if (isMessageObject(event)) {
-		const message = event.message as { message: string, object: any };
-		updateSpaces(message.object);
-	} else {
-		//some other stuff i guess
-	}
-}
-*/
