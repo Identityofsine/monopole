@@ -1,20 +1,15 @@
+import { Dispatch } from "react";
 import "../../styles/popup.scss";
 
 export type PopUpProps = {
 	children?: React.ReactNode
-	openState: [boolean, React.Dispatch<React.SetStateAction<boolean>>]
+	close?: Dispatch<void>
 };
 
 function PopUp(props: PopUpProps) {
 
-	if (props.openState) {
-		if (!props.openState[0]) return null;
-	}
-
 	function close() {
-		if (props.openState) {
-			props.openState[1](false);
-		}
+		props.close && props?.close()
 	}
 
 	return (

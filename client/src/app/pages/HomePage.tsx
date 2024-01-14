@@ -106,15 +106,15 @@ function HomePage() {
 				</div>
 			</div>
 
-			<popup.element>
+			<popup.element key="popup">
 				<div className="flex justify-center">
-					<div className="flex column" datatype-name="join">
+					<div className="flex column">
 						<h2>Join Game</h2>
-						<input type="text" onChange={(e) => setGameID(e.target.value)} placeholder="Game ID" />
-						<input type="text" onChange={(e) => setName(e.target.value)} placeholder="Player Name" />
+						<input key="input1" type="text" onChange={(e) => setGameID(e.target.value)} defaultValue={game_id} placeholder="Game ID" />
+						<input key="input2" type="text" onChange={(e) => setName(e.target.value)} defaultValue={name} placeholder="Player Name" />
 						<button onClick={() => { joinGame(game_id) }}>Join</button>
 					</div>
-					<div className="flex column" datatype-name="create">
+					<div className="flex column">
 						<h2>Create Game</h2>
 						<input type="text" onChange={(e) => setName(e.target.value)} defaultValue={name} placeholder="Player Name" />
 						<button onClick={() => { joinGame() }}>Create</button>
