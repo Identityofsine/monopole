@@ -1,7 +1,7 @@
 import { PlayerHoldableSpace } from "@/app/pages/HomePage";
 import { Connection, ConnectionInterface } from "@/obj/connection";
 import { Dispatch, SetStateAction } from "react";
-import { BaseIntent, BaseResponse, ExpectedMessages, GameResponse, Identifiable, Player, ResponseIntent, Space } from "shared-types";
+import { BaseIntent, BaseResponse, DecisionType, ExpectedMessages, GameResponse, Identifiable, Player, ResponseIntent, Space } from "shared-types";
 
 
 //TODO: move to shared-types
@@ -31,7 +31,7 @@ export interface GameHandler {
 	isMessageObject(event: BaseResponse): boolean;
 	handleGameUpdate(event: GameResponse): void;
 	castObject(message: object): Optional<GlobalUpdateStruct>;
-	roll(): void;
+	sendDecision(choice: DecisionType): void;
 }
 
 export enum GameUpdateType {
@@ -117,13 +117,18 @@ export class GameUpdater implements GameHandler {
 			if (message.message === 'PLAYER_JOINED' || message.message === 'PLAYER_UPDATED') {
 				this.spaceHandle.playerChanged(message.object);
 			}
+			if (event.response === 'respond') {
+				const decision = this.playerHandle.returnDecisionTree(event);
+				this.connection.askPlayer(decision);
+			}
 		} else {
 			//some other stuff i guess
 		}
 	}
 
-	public roll(): void {
-		this.playerHandle.roll();
+	public sendDecision(choice: DecisionType): void {
+		this.playerHandle.sendDecision(choice);
+		this.connection.askPlayer([]);
 	}
 
 	public castObject(message: object): Optional<GlobalUpdateStruct> {
@@ -206,6 +211,27 @@ export class PlayerHandle {
 		}
 		this.m_gcl.send(intent_block);
 	}
+
+	public returnDecisionTree(message: GameResponse): DecisionType[] {
+		if (!message.decision) return [];
+		if (typeof message.decision === 'string') return [message.decision];
+
+		return [...message.decision];
+	}
+
+	public sendDecision(choice: DecisionType): void {
+		const intent_block: ResponseIntent = {
+			intent: 'response',
+			state: 'turn',
+			decision: choice,
+			name: '___',
+			uuid: this.m_gcl.getUUID(),
+			game_uuid: this.m_gcl.getGameUUID()
+		}
+		this.m_gcl.send(intent_block);
+	}
+
+
 
 }
 

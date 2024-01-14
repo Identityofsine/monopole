@@ -1,6 +1,6 @@
 import { Events } from "@/interface/events";
 import { WebSocketEvent } from "./listener";
-import { BaseIntent } from "shared-types";
+import { BaseIntent, DecisionType } from "shared-types";
 
 export type ConnectionParams = {
 	intent: 'join' | 'create',
@@ -16,6 +16,7 @@ export abstract class Connection extends Events<WebSocketEvent> {
 
 export interface ConnectionInterface {
 	send(data: BaseIntent): void;
+	askPlayer(tree: DecisionType[]): void;
 	getUUID(): string;
 	getGameUUID(): string;
 }

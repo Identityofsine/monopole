@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { DataEvent, ErrorEvent } from '@/interface/events';
 import ReactJson from 'react-json-view';
 import RowOrganizer from '../components/board/RowOrganizer';
-import { BaseIntent, BaseResponse, GameResponse, Identifiable, Player, Space, UUID } from 'shared-types';
+import { BaseIntent, BaseResponse, DecisionType, GameResponse, Identifiable, Player, Space, UUID } from 'shared-types';
 import { GameHandler, GameUpdater, SpaceHandle } from '@/util/GameUpdater';
 import PopUp from '../components/popup/PopUp';
 import UsePopUp from '@/hooks/UsePopUp';
@@ -34,6 +34,7 @@ function HomePage() {
 	//temp state storage
 	const [name, setName] = useState<string>("");
 	const [game_id, setGameID] = useState<UUID.UUID>("");
+	const [decisions, setDecisions] = useState<DecisionType[]>([]);
 
 
 	const game_updater = useRef<GameHandler>();
@@ -56,7 +57,10 @@ function HomePage() {
 			}).bind(uuid),
 			getGameUUID: (() => {
 				return uuid.current.game_uuid;
-			}).bind(uuid)
+			}).bind(uuid),
+			askPlayer: (tree: DecisionType[]) => {
+				setDecisions(tree);
+			}
 		}, setSpaces)
 
 		connection.Connection.on("message", (event: DataEvent) => {
@@ -124,7 +128,9 @@ function HomePage() {
 
 			<div className={styles.center}>
 				<RowOrganizer row_height={20} rows={4} spaces={spaces}>
-					<h2 className="pointer" onClick={() => { game_updater.current?.roll() }}>ROLL</h2>
+					{decisions.map((decision, index) => (
+						<h2 className="pointer" onClick={() => { game_updater.current?.sendDecision(decision) }}>{decision}</h2>
+					))}
 				</RowOrganizer>
 			</div>
 
