@@ -1,0 +1,21 @@
+.popup {
+	position: fixed;
+	height: 10rem;
+	width: 25rem;
+	max-width: var(--max-width);
+	z-index: 999;
+	background-color: rgba(var(--callout-rgb), .7);
+	border: 1px solid rgba(var(--callout-border-rgb), .2);
+	border-radius: var(--border-radius);
+
+	.popup-content {
+		padding-top: 1.5rem;
+		z-index: 1000;
+	}
+
+	.close-button {
+		right: 1rem;
+		top: .25rem;
+		opacity: .7;
+	}
+}

@@ -8,6 +8,8 @@ import ReactJson from 'react-json-view';
 import RowOrganizer from '../components/board/RowOrganizer';
 import { BaseIntent, BaseResponse, GameResponse, Identifiable, Player, Space, UUID } from 'shared-types';
 import { GameHandler, GameUpdater, SpaceHandle } from '@/util/GameUpdater';
+import PopUp from '../components/popup/PopUp';
+import UsePopUp from '@/hooks/UsePopUp';
 
 
 export type PlayerHoldableSpace = Space & {
@@ -27,15 +29,22 @@ function HomePage() {
 	const uuid = useRef<GameID>({ game_uuid: "", player_uuid: "" });
 	const [text, setText] = useState<object[]>([]);
 	const [spaces, setSpaces] = useState<PlayerHoldableSpace[]>([]);
+	const popup = (UsePopUp(true));
+
+	//temp state storage
+	const [name, setName] = useState<string>("");
+	const [game_id, setGameID] = useState<UUID.UUID>("");
 
 
 	const game_updater = useRef<GameHandler>();
 
+	function joinGame(uuid?: UUID.UUID) {
+		connection?.connect(name, uuid);
+		popup.close();
+	}
+
 	useEffect(() => {
 		if (!connection) return;
-
-		//connect to server
-		connection.connect("sex", "019a973d-34d8-q23b-8be-91afc8e8f806");
 
 		//init gameupdater
 		game_updater.current = GameUpdater.create({
@@ -96,6 +105,22 @@ function HomePage() {
 				<div>
 				</div>
 			</div>
+
+			<popup.element>
+				<div className="flex justify-center">
+					<div className="flex column" datatype-name="join">
+						<h2>Join Game</h2>
+						<input type="text" onChange={(e) => setGameID(e.target.value)} placeholder="Game ID" />
+						<input type="text" onChange={(e) => setName(e.target.value)} placeholder="Player Name" />
+						<button onClick={() => { joinGame(game_id) }}>Join</button>
+					</div>
+					<div className="flex column" datatype-name="create">
+						<h2>Create Game</h2>
+						<input type="text" onChange={(e) => setName(e.target.value)} defaultValue={name} placeholder="Player Name" />
+						<button onClick={() => { joinGame() }}>Create</button>
+					</div>
+				</div>
+			</popup.element>
 
 			<div className={styles.center}>
 				<RowOrganizer row_height={20} rows={4} spaces={spaces}>
