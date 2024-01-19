@@ -32,7 +32,7 @@ export type Responses = 'connect' | 'join' | 'respond' | 'message' | 'id' | 'upd
 
 
 //Expected Messages expected from the client
-export type ExpectedMessages = "HOST_OPTIONS" | "PLAYER_JOINED" | "STATUS_UPDATE" | "PLAYER_UPDATED" | "GAME_UPDATE" | "ROLL_UPDATE" | "TURN_UPDATE" | "JAIL_UPDATE" | "MONEY_UPDATE" | "JUST_JOINED"
+export type ExpectedMessages = "HOST_OPTIONS" | "PLAYER_JOINED" | "STATUS_UPDATE" | "PLAYER_UPDATED" | "GAME_UPDATE" | "ROLL_UPDATE" | "TURN_UPDATE" | "JAIL_UPDATE" | "MONEY_UPDATE" | "JUST_JOINED" | "BUILDING_UPDATE"
 
 
 //BaseResponse is the response that the server sends to the client, all responses that the server may send inherit from this
@@ -68,3 +68,5 @@ export type GameResponse = {
 	recipient: Recipient;
 	decision?: DecisionType | DecisionType[];
 } & BaseResponse
+
+

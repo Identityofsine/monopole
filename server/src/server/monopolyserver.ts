@@ -6,6 +6,7 @@ import ServerInstance from "./websocket";
 import * as WebSocket from 'ws';
 import { BaseIntent, BaseResponse, CommandIntent, ConnectionIntent, ErrorResponse, GameResponse, ResponseIntent } from "shared-types";
 import { MonopolyInterface } from "../monopoly/types";
+import { Property } from "../monopoly/space";
 
 interface MonopolyGame {
 	engine: MonopolyEngine;
@@ -139,14 +140,16 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 			} else if (action == 'ignore') {
 				communicationlayer.ignore();
 			} else if (action == 'buy') {
-				if (communicationlayer.buyProperty()) {
+				let space = communicationlayer.buyProperty();
+				if (space) {
 					ws.send(JSON.stringify(MessageFactory.createMessage('You bought property')));
+					this.m_sendBuildingUpdate(engine, space);
 				} else {
 					ws.send(JSON.stringify(MessageFactory.createMessage('Unable to buy property')));
 				}
 				communicationlayer.ignore();
 			}
-			this.m_sendUpdate(engine, player);
+			this.m_sendPlayerUpdate(engine, player);
 
 			console.log('[monopolyserver] received response: ', data);
 		}
@@ -170,7 +173,7 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 	}
 
 
-	private m_sendUpdate(game: MonopolyGame, player: Player) {
+	private m_sendPlayerUpdate(game: MonopolyGame, player: Player) {
 		const filtered_player: Filter<Player, | 'notify' | 'giveMoney' | 'takeMoney' | 'setPosition' | 'setMonopolyInterface' | 'setCommunicationLayer'> = player;
 		const update: GameResponse = {
 			response: 'update',
@@ -178,6 +181,17 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 			message: { message: 'PLAYER_UPDATED', object: filtered_player },
 			success: true,
 		}
+		this.broadcast(game, update);
+	}
+
+	private m_sendBuildingUpdate(game: MonopolyGame, space: Property) {
+		const update: GameResponse = {
+			response: 'update',
+			recipient: 'game',
+			message: { message: 'BUILDING_UPDATE', object: space },
+			success: true,
+		}
+
 		this.broadcast(game, update);
 	}
 

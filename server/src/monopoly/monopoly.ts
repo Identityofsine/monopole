@@ -215,7 +215,7 @@ export class Monopoly {
 		return this.players[this.currentPlayer];
 	}
 
-	private buyProperty(player: Player): boolean {
+	private buyProperty(player: Player): Property | false {
 		const position = player.Position;
 		const space = this.spaces[position];
 		//check if space is  Property
@@ -226,7 +226,7 @@ export class Monopoly {
 					player.takeMoney(property.price);
 					property.setOwner(player.UUID);
 					console.log('[monopoly] player %s bought %s for %d', player.Name, property.name, property.price);
-					return true;
+					return property;
 				} else {
 					return false;
 				}
@@ -334,7 +334,7 @@ export interface PlayerCommunicationLayer extends CommunicationLayer {
 	rollDice(): Pair;
 	alreadyRolled(): boolean;
 	move(amount: number, unjail?: boolean): Space;
-	buyProperty(): boolean;
+	buyProperty(): Property | false;
 	sellProperty(): boolean;
 	createTrade(player: Player | UUID.UUID, trade: Trade): boolean;
 	acceptTrade(trade: Trade): boolean;
