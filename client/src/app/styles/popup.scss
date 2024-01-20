@@ -1,12 +1,17 @@
 .popup {
 	position: fixed;
-	height: 10rem;
-	width: 25rem;
+	height: 5rem;
+	width: 10rem;
 	max-width: var(--max-width);
 	z-index: 999;
 	background-color: rgba(var(--callout-rgb), .7);
 	border: 1px solid rgba(var(--callout-border-rgb), .2);
 	border-radius: var(--border-radius);
+
+
+	h2 {
+		font-size: .65rem;
+	}
 
 	.popup-content {
 		padding-top: 1.5rem;
@@ -14,8 +19,9 @@
 	}
 
 	.close-button {
-		right: 1rem;
+		right: .35rem;
 		top: .25rem;
+		font-size: .5rem;
 		opacity: .7;
 	}
 }

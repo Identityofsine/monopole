@@ -8,7 +8,7 @@ import Piece from "./Piece";
 function Space(props: SpaceProps) {
 
 	return (
-		<div className={`space ${(props.vertical ?? false) ? 'vertical' : ''} ${(props.big ?? false) ? 'big' : ''} ${(props?.owner && 'owned') ?? ''} relative`}>
+		<div className={`space ${(props.vertical ?? false) ? 'vertical' : ''} ${(props.big ?? false) ? 'big' : ''} ${(props?.owner && 'owned') ?? ''} relative flex column`}>
 
 			<span className="name center-text">{props.name}</span>
 			<div className="players flex ">
@@ -16,7 +16,7 @@ function Space(props: SpaceProps) {
 					<Piece player={player} color={{ name: "Blue", hex: "#0000FF" }} key={idx} />
 				))}
 			</div>
-			<div className="details flex center-flex margin-top-auto">
+			<div className="price flex center-flex margin-top-auto">
 				<span>${props.price}</span>
 			</div>
 		</div>

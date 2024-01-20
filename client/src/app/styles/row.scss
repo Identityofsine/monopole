@@ -7,36 +7,31 @@
 		height: 100%;
 		width: 100%;
 	}
-}
 
+	.row,
+	.column,
+	.column-reverse,
+	.row-reverse {
+		display: flex;
+	}
 
-.row,
-.column,
-.column-reverse,
-.row-reverse {
-	display: flex;
-	background-color: red;
-}
+	.column,
+	.column-reverse {}
 
-.column,
-.column-reverse {
-	height: 100%;
-	background-color: blue;
-}
+	.row,
+	.row-reverse {
+		width: 100%;
+	}
 
-.row,
-.row-reverse {
-	width: 100%;
-}
+	.column {
+		flex-direction: column;
+	}
 
-.column {
-	flex-direction: column;
-}
+	.column-reverse {
+		flex-direction: column-reverse;
+	}
 
-.column-reverse {
-	flex-direction: column-reverse;
-}
-
-.row-reverse {
-	flex-direction: row-reverse;
+	.row-reverse {
+		flex-direction: row-reverse;
+	}
 }

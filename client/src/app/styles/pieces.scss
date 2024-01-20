@@ -1,6 +1,6 @@
 .piece {
-	width: 3rem;
-	height: 3rem;
-	padding: .8rem 0rem;
+	$dimen: .6rem;
+	width: $dimen;
+	height: $dimen;
 	border-radius: 50%;
 }

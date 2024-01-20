@@ -21,7 +21,7 @@
 	display: inherit;
 	justify-content: inherit;
 	align-items: inherit;
-	font-size: 0.85rem;
+	font-size: 0.15rem;
 	max-width: var(--max-width);
 	width: 100%;
 	z-index: 2;
@@ -90,7 +90,7 @@
 
 .center {
 	position: relative;
-	width: 1400px;
+	width: 100%;
 }
 
 .logo {
