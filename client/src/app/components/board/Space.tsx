@@ -8,7 +8,7 @@ import Piece from "./Piece";
 function Space(props: SpaceProps) {
 
 	return (
-		<div className={`space ${(props.vertical ?? false) ? 'vertical' : ''} ${(props.big ?? false) ? 'big' : ''}`}>
+		<div className={`space ${(props.vertical ?? false) ? 'vertical' : ''} ${(props.big ?? false) ? 'big' : ''} ${(props?.owner && 'owned') ?? ''} `}>
 
 			<span className="name">{props.name}</span>
 			<div className="players flex margin-top-auto">

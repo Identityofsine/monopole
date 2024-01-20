@@ -1,7 +1,7 @@
 import { PlayerHoldableSpace } from "@/app/pages/HomePage";
 import { Connection, ConnectionInterface } from "@/obj/connection";
 import { Dispatch, SetStateAction } from "react";
-import { BaseIntent, BaseResponse, DecisionType, ExpectedMessages, GameResponse, Identifiable, Player, ResponseIntent, Space } from "shared-types";
+import { BaseIntent, BaseResponse, DecisionType, ExpectedMessages, GameResponse, Identifiable, Player, ResponseIntent, UUID, Space } from "shared-types";
 
 
 //TODO: move to shared-types
@@ -12,6 +12,8 @@ export type GlobalUpdateStruct = {
 }
 
 export type PlayerConnectionStruct = Player;
+
+export type SpaceUpdateStruct = Space;
 
 class Optional<T> {
 	constructor(public value: T | undefined) { }
@@ -116,6 +118,8 @@ export class GameUpdater implements GameHandler {
 			if (this.updateSpaces(message.object as GlobalUpdateStruct)) return;
 			if (message.message === 'PLAYER_JOINED' || message.message === 'PLAYER_UPDATED') {
 				this.spaceHandle.playerChanged(message.object);
+			} else if (message.message === "BUILDING_UPDATE") {
+				this.spaceHandle.updateSingleSpace(message.object as Space);
 			}
 			if (event.response === 'respond') {
 				const decision = this.playerHandle.returnDecisionTree(event);
@@ -163,6 +167,30 @@ export class SpaceHandle {
 		return true;
 	}
 
+	private m_replaceSpace(uuid: UUID.UUID, space: Space) {
+		//replace space but keep players and buildings
+		this.m_gcl.getSpacesState((old_space) => {
+			const new_space = [...old_space];
+			const index = new_space.findIndex((space) => {
+				return space.uuid === uuid;
+			});
+			if (index !== -1) {
+				new_space[index] = {
+					...space,
+					players: new_space[index].players,
+					buildings: new_space[index].buildings
+				}
+			}
+			return new_space;
+		});
+	}
+
+	public updateSingleSpace(message: SpaceUpdateStruct): boolean {
+		const space_uuid = message.uuid;
+		if (!space_uuid) return false;
+		this.m_replaceSpace(space_uuid, message);
+		return true;
+	}
 
 	public playerChanged(message: PlayerConnectionStruct): boolean {
 		if (!message?.position && message?.name && !message?.uuid) return false;

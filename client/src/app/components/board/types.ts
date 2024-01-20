@@ -1,4 +1,4 @@
-import { Player } from "shared-types";
+import { Player, UUID } from "shared-types";
 
 export type Color = {
 	name: string;
@@ -7,6 +7,7 @@ export type Color = {
 
 export type SpaceProps = {
 	name: string;
+	owner?: UUID.UUID
 	players: Player[];
 	color: Color;
 	vertical?: boolean;

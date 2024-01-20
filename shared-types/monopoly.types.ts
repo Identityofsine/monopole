@@ -3,7 +3,7 @@ import { ExpectedMessages } from "./server.types";
 declare type UUID = string;
 
 declare type Identifiable = {
-	id: UUID;
+	uuid: UUID;
 	name: string;
 }
 
@@ -15,6 +15,7 @@ export type Player = Identifiable & {
 }
 
 export type Space = Identifiable & {
+	_owner?: UUID;
 	buildings?: number;
 	onLand?: (...args: any) => void;
 }

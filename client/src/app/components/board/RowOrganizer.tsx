@@ -72,7 +72,8 @@ function RowOrganizer(props: RowOrganizerProps) {
 			let space_prop: SpaceProps = {
 				name: space.name,
 				color: { name: 'red', hex: 'red' },
-				players: space.players
+				players: space.players,
+				owner: space?._owner
 			}
 			if (idx < 11) {
 				if (idx === 0 || idx === 10) {
