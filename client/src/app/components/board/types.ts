@@ -9,6 +9,7 @@ export type SpaceProps = {
 	name: string;
 	owner?: UUID.UUID
 	players: Player[];
+	price: number;
 	color: Color;
 	vertical?: boolean;
 	big?: boolean;

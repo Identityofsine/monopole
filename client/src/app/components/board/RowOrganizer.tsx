@@ -71,6 +71,7 @@ function RowOrganizer(props: RowOrganizerProps) {
 			//ugly code
 			let space_prop: SpaceProps = {
 				name: space.name,
+				price: space?.price ?? 0,
 				color: { name: 'red', hex: 'red' },
 				players: space.players,
 				owner: space?._owner

@@ -15,6 +15,7 @@ export type Player = Identifiable & {
 }
 
 export type Space = Identifiable & {
+	price?: number;
 	_owner?: UUID;
 	buildings?: number;
 	onLand?: (...args: any) => void;
