@@ -9,7 +9,7 @@ export type Color = {
 
 export type SpaceProps = {
 	name: string;
-	owner?: UUID.UUID
+	owner?: string
 	players: Player[];
 	price: number;
 	color: Color;

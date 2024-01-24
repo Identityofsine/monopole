@@ -40,6 +40,7 @@ export interface GameHandler extends ISource {
 	*/
 export interface ISource {
 	sendDecision(choice: DecisionType): void;
+	getPlayer(uuid: UUID.UUID): Player | undefined;
 }
 
 export enum GameUpdateType {
@@ -54,12 +55,12 @@ export type GameState = 'STARTED' | 'WAITING' | 'ENDED';
 
 
 type ReactUpdate<T> = { state: T, setState: Dispatch<SetStateAction<T>> }
-type GameUpdaterStates = ReactUpdate<PlayerHoldableSpace[]> | ReactUpdate<Player> | ReactUpdate<GameState> | ReactUpdate<"">;
+type GameUpdaterStates = ReactUpdate<PlayerHoldableSpace[]> | ReactUpdate<Player[]> | ReactUpdate<GameState> | ReactUpdate<"">;
 
 
 interface GameUpdaterCommunicationLayer {
 	getSpacesState: ReactUpdate<PlayerHoldableSpace[]>;
-	getPlayersState: ReactUpdate<Player>;
+	getPlayersState: ReactUpdate<Player[]>;
 	getWorldState: ReactUpdate<"">;
 	getUUID: () => string;
 	getGameUUID: () => string;
@@ -83,7 +84,7 @@ export class GameUpdater implements GameHandler {
 	private spaceHandle: SpaceHandle;
 	private playerHandle: PlayerHandle;
 
-	private constructor(private icclayer: ICClient, gameState: ReactUpdate<GameState>, spaceState: ReactUpdate<PlayerHoldableSpace[]>, playerState?: ReactUpdate<Player>, worldState?: ReactUpdate<''>) {
+	private constructor(private icclayer: ICClient, gameState: ReactUpdate<GameState>, spaceState: ReactUpdate<PlayerHoldableSpace[]>, playerState?: ReactUpdate<Player[]>, worldState?: ReactUpdate<''>) {
 		this.states.push(gameState);
 		this.states.push(spaceState);
 		if (playerState) {
@@ -100,7 +101,7 @@ export class GameUpdater implements GameHandler {
 	private m_GCLFactory(): GameUpdaterCommunicationLayer {
 		return {
 			getSpacesState: this.states[GameUpdaterStatesEnum.SPACE] as ReactUpdate<PlayerHoldableSpace[]>,
-			getPlayersState: this.states[GameUpdaterStatesEnum.PLAYER] as ReactUpdate<Player>,
+			getPlayersState: this.states[GameUpdaterStatesEnum.PLAYER] as ReactUpdate<Player[]>,
 			getWorldState: this.states[GameUpdaterStatesEnum.WORLD] as ReactUpdate<"">,
 			getUUID: () => this.icclayer.getID.bind(this.icclayer)().player_uuid,
 			getGameUUID: () => this.icclayer.getID.bind(this.icclayer)().game_uuid,
@@ -108,7 +109,7 @@ export class GameUpdater implements GameHandler {
 		}
 	}
 
-	public static create(icclayer: ICClient, gameState: ReactUpdate<GameState>, spaceState: ReactUpdate<PlayerHoldableSpace[]>, playerState?: ReactUpdate<Player>, worldState?: ReactUpdate<''>): GameUpdater {
+	public static create(icclayer: ICClient, gameState: ReactUpdate<GameState>, spaceState: ReactUpdate<PlayerHoldableSpace[]>, playerState?: ReactUpdate<Player[]>, worldState?: ReactUpdate<''>): GameUpdater {
 		return new GameUpdater(icclayer, gameState, spaceState, playerState, worldState);
 	}
 
@@ -123,6 +124,10 @@ export class GameUpdater implements GameHandler {
 
 	public updateSpaces(message: GlobalUpdateStruct): boolean {
 		return this.spaceHandle.updateSpaces(message);
+	}
+
+	public getPlayer(uuid: UUID.UUID): Player | undefined {
+		return this.playerHandle.getPlayer(uuid);
 	}
 
 	public handleGameMessage(message: BaseResponse): GameID | void {
@@ -150,6 +155,7 @@ export class GameUpdater implements GameHandler {
 			if (this.updateSpaces(message.object as GlobalUpdateStruct)) return;
 			if (message.message === 'PLAYER_JOINED' || message.message === 'PLAYER_UPDATED') {
 				this.spaceHandle.playerChanged(message.object);
+				this.playerHandle.updatePlayer(message.object as Player);
 			} else if (message.message === "BUILDING_UPDATE") {
 				this.spaceHandle.updateSingleSpace(message.object as Space);
 			}
@@ -287,6 +293,33 @@ export class PlayerHandle {
 		if (typeof message.decision === 'string') return [message.decision];
 
 		return [...message.decision];
+	}
+
+	public getPlayer(uuid: UUID.UUID): Player | undefined {
+		return this.m_gcl.getPlayersState.state.find((player) => {
+			return player.uuid === uuid;
+		});
+	}
+
+	public updatePlayer(object: Player) {
+		this.m_gcl.getPlayersState.setState((old_players) => {
+			const new_players = [...old_players];
+			const index = new_players.findIndex((player) => {
+				return player.uuid === object.uuid;
+			});
+			if (index !== -1) {
+				new_players[index] = object;
+			} else {
+				new_players.push(object);
+			}
+			return new_players;
+		});
+	}
+
+	public addPlayer(object: Player) {
+		this.m_gcl.getPlayersState.setState((old_players) => {
+			return [...old_players, object];
+		});
 	}
 
 	public sendDecision(choice: DecisionType): void {

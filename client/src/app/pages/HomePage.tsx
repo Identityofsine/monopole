@@ -40,6 +40,7 @@ function HomePage() {
 	//uuid stuff
 	const uuid = useRef<GameID>({ game_uuid: "", player_uuid: "", host_uuid: "" });
 	const [spaces, setSpaces] = useState<PlayerHoldableSpace[]>([]);
+	const [players, setPlayers] = useState<Player[]>([]);
 
 	//gamestate
 	const [gamestate, setGamestate] = useState<GameState>("WAITING");
@@ -75,7 +76,7 @@ function HomePage() {
 			askPlayer: (tree: DecisionType[]) => {
 				setDecisions(tree);
 			}
-		}, { state: gamestate, setState: setGamestate }, { state: spaces, setState: setSpaces })
+		}, { state: gamestate, setState: setGamestate }, { state: spaces, setState: setSpaces }, { state: players, setState: setPlayers })
 
 	}
 
