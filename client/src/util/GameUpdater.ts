@@ -85,7 +85,7 @@ export class GameUpdater implements GameHandler {
 	private states: GameUpdaterStates[] = [];
 	private spaceHandle: SpaceHandle;
 	private playerHandle: PlayerHandle;
-	private errorHandle: ErrorHandle;
+	private alerter: AlertSystem;
 
 	private constructor(private icclayer: ICClient, gameState: ReactUpdate<GameState>, spaceState: ReactUpdate<PlayerHoldableSpace[]>, playerState?: ReactUpdate<Player[]>, worldState?: ReactUpdate<''>) {
 		this.states.push(gameState);
@@ -99,7 +99,7 @@ export class GameUpdater implements GameHandler {
 		//this must execute after the states are set
 		this.spaceHandle = new SpaceHandle(this.m_GCLFactory.bind(this)());
 		this.playerHandle = new PlayerHandle(this.m_GCLFactory.bind(this)());
-		this.errorHandle = new ErrorHandle(this.m_GCLFactory.bind(this)());
+		this.alerter = new AlertSystem(this.m_GCLFactory.bind(this)());
 	}
 
 	private m_GCLFactory(): GameUpdaterCommunicationLayer {
@@ -142,7 +142,7 @@ export class GameUpdater implements GameHandler {
 
 		//check for error
 		if (this.isError(message)) {
-			this.errorHandle.throwError(message as ErrorResponse);
+			this.alerter.throwError(message as ErrorResponse);
 		}
 		//check messages
 		if (message.response === "id") {
@@ -173,11 +173,16 @@ export class GameUpdater implements GameHandler {
 			}
 			if (event.response === 'respond') {
 				const decision = this.playerHandle.returnDecisionTree(event);
+				//does decision contain 'roll'?
+				if (decision.includes('roll')) {
+					this.alerter.throwInfo('Your turn!');
+				}
 				this.icclayer.askPlayer([...decision]);
 			}
 			if (event.response === 'update') {
 				if (event.recipient === 'global') {
 					(this.states[GameUpdaterStatesEnum.GAMESTATE] as ReactUpdate<GameState>).setState('STARTED');
+					this.alerter.throwInfo('Game has started!');
 					return;
 				}
 			}
@@ -364,12 +369,20 @@ export class PlayerHandle {
 }
 
 
-export class ErrorHandle {
+export class AlertSystem {
 
 	public constructor(private m_gcl: GameUpdaterCommunicationLayer) {
 	}
 
+	public throwInfo(message: string) {
+		alert("Info: " + message);
+	}
+
+	public throwWarning(message: ErrorResponse) {
+		alert("Warning: " + message.message);
+	}
+
 	public throwError(message: ErrorResponse) {
-		alert(message.message);
+		alert("Warning: " + message.message);
 	}
 }
