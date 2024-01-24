@@ -43,7 +43,8 @@ function HomePage() {
 	const [players, setPlayers] = useState<Player[]>([]);
 
 	//gamestate
-	const [gamestate, setGamestate] = useState<GameState>("WAITING");
+	const [gamestate, setGamestate] = useState<GameState>("INACTIVE");
+	const gamestate_ref = useRef<GameState>(gamestate);
 
 	//popup window.
 	const popup = (UsePopUp(true));
@@ -56,10 +57,11 @@ function HomePage() {
 	const [decisions, setDecisions] = useState<DecisionType[]>([]);
 
 
-	const game_updater = useRef<GameHandler>();
+	const game_updater = useRef<GameUpdater>();
 
 	function joinGame(uuid?: UUID.UUID) {
 		connection?.connect(name, uuid);
+		setGamestate("WAITING");
 		popup.close();
 	}
 
@@ -76,9 +78,13 @@ function HomePage() {
 			askPlayer: (tree: DecisionType[]) => {
 				setDecisions(tree);
 			}
-		}, { state: gamestate, setState: setGamestate }, { state: spaces, setState: setSpaces }, { state: players, setState: setPlayers })
+		}, { getState: (() => { return gamestate_ref.current; }).bind(gamestate_ref), setState: setGamestate }, { getState: () => spaces, setState: setSpaces }, { getState: () => players, setState: setPlayers })
 
 	}
+
+	useEffect(() => {
+		gamestate_ref.current = gamestate;
+	}, [gamestate])
 
 	useEffect(() => {
 		if (!connection) return;
@@ -132,6 +138,11 @@ function HomePage() {
 				</div>
 			</popup.element>
 
+			{gamestate === 'INACTIVE' &&
+				<div>
+					<span onClick={() => popup.open()}>Join Game</span>
+				</div>
+			}
 			<div className={styles.center}>
 				<Board spaces={spaces} decisions={decisions} iface={game_updater.current as ISource} />
 			</div>

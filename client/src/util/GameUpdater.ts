@@ -50,12 +50,13 @@ export enum GameUpdateType {
 	SPACE
 }
 
-export type GameState = 'STARTED' | 'WAITING' | 'ENDED';
+export type GameState = 'STARTED' | 'WAITING' | 'ENDED' | 'INACTIVE';
+export type DispatchWithResult<T, R> = (value: T) => R;
 
 //eventually change to a union type
 
 
-type ReactUpdate<T> = { state: T, setState: Dispatch<SetStateAction<T>> }
+type ReactUpdate<T> = { getState: DispatchWithResult<void, T>, setState: Dispatch<SetStateAction<T>> }
 type GameUpdaterStates = ReactUpdate<PlayerHoldableSpace[]> | ReactUpdate<Player[]> | ReactUpdate<GameState> | ReactUpdate<"">;
 
 
@@ -181,7 +182,7 @@ export class GameUpdater implements GameHandler {
 				}
 			}
 			const ids = this.icclayer.getID();
-			if (ids.player_uuid === ids.host_uuid && this.states[GameUpdaterStatesEnum.GAMESTATE].state === 'WAITING') {
+			if (ids.player_uuid === ids.host_uuid && this.states[GameUpdaterStatesEnum.GAMESTATE].getState() === 'WAITING') {
 				this.icclayer.askPlayer(['start']);
 			}
 		} else {
