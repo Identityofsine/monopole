@@ -7,9 +7,10 @@ import { DataEvent, ErrorEvent } from '@/interface/events';
 import ReactJson from 'react-json-view';
 import RowOrganizer from '../components/board/RowOrganizer';
 import { BaseIntent, BaseResponse, DecisionType, GameResponse, Identifiable, Player, Space, UUID } from 'shared-types';
-import { GameHandler, GameUpdater, SpaceHandle } from '@/util/GameUpdater';
+import { GameHandler, GameUpdater, ISource, SpaceHandle } from '@/util/GameUpdater';
 import PopUp from '../components/popup/PopUp';
 import UsePopUp from '@/hooks/UsePopUp';
+import Board from '../components/board/Board';
 
 
 export type PlayerHoldableSpace = Space & {
@@ -123,11 +124,7 @@ function HomePage() {
 			</popup.element>
 
 			<div className={styles.center}>
-				<RowOrganizer row_height={20} rows={4} spaces={spaces}>
-					{decisions.map((decision, index) => (
-						<h2 className="pointer" onClick={() => { game_updater.current?.sendDecision(decision) }}>{decision}</h2>
-					))}
-				</RowOrganizer>
+				<Board spaces={spaces} decisions={decisions} iface={game_updater.current as ISource} />
 			</div>
 
 		</main>

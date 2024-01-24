@@ -28,12 +28,18 @@ class Optional<T> {
 
 }
 
-export interface GameHandler {
+export interface GameHandler extends ISource {
 	isGameUpdate(event: BaseResponse): boolean;
 	isMessageObject(event: BaseResponse): boolean;
 	handleGameUpdate(event: GameResponse): void;
 	handleGameMessage(event: BaseResponse): GameID | void;
 	castObject(message: object): Optional<GlobalUpdateStruct>;
+}
+
+/**
+	* @summary {ISource is an interface that defines the methods that a class must implement to be a source of game updates, this should only be used by the Board Component}
+	*/
+export interface ISource {
 	sendDecision(choice: DecisionType): void;
 }
 
