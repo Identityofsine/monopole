@@ -52,7 +52,7 @@ export type Filter<A extends Record<string, any>, B extends keyof A> = {
 	[K in Exclude<keyof A, B>]: A[K]
 }
 
-export type DecisionType = 'roll' | 'trade' | 'buy' | 'sell' | 'mortgage' | 'unmortgage' | 'build' | 'demolish' | 'ignore' | 'pay';
+export type DecisionType = 'roll' | 'trade' | 'buy' | 'sell' | 'mortgage' | 'unmortgage' | 'build' | 'demolish' | 'ignore' | 'pay' | MonopolyEngineCommands;
 
 export type NotificationEvent = {
 	type: NotificationType;
@@ -66,5 +66,6 @@ export type JailData = {
 	in_jail: boolean;
 }
 
-
 export type MonopolyEngineCommands = 'start'
+
+export type IsCommand<T extends string> = T extends MonopolyEngineCommands ? true : false;

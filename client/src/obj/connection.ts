@@ -16,7 +16,5 @@ export abstract class Connection extends Events<WebSocketEvent> {
 
 export interface ConnectionInterface {
 	send(data: BaseIntent): void;
-	askPlayer(tree: DecisionType[]): void;
-	getUUID(): string;
-	getGameUUID(): string;
+
 }

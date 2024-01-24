@@ -1,7 +1,6 @@
-import { GameID, PlayerHoldableSpace } from "@/app/pages/HomePage";
-import { Connection, ConnectionInterface } from "@/obj/connection";
+import { GameID, ICClient, PlayerHoldableSpace } from "@/app/pages/HomePage";
 import { Dispatch, SetStateAction } from "react";
-import { BaseIntent, BaseResponse, DecisionType, ExpectedMessages, GameResponse, Identifiable, Player, ResponseIntent, UUID, Space } from "shared-types";
+import { BaseIntent, BaseResponse, DecisionType, ExpectedMessages, GameResponse, Identifiable, Player, ResponseIntent, UUID, Space, CommandIntent, IsCommand, MonopolyEngineCommands } from "shared-types";
 
 
 //TODO: move to shared-types
@@ -49,8 +48,13 @@ export enum GameUpdateType {
 	SPACE
 }
 
-type ReactUpdate<T> = Dispatch<SetStateAction<T>>
-type GameUpdaterStates = ReactUpdate<PlayerHoldableSpace[]> | ReactUpdate<Player> | ReactUpdate<"">;
+export type GameState = 'STARTED' | 'WAITING' | 'ENDED';
+
+//eventually change to a union type
+
+
+type ReactUpdate<T> = { state: T, setState: Dispatch<SetStateAction<T>> }
+type GameUpdaterStates = ReactUpdate<PlayerHoldableSpace[]> | ReactUpdate<Player> | ReactUpdate<GameState> | ReactUpdate<"">;
 
 
 interface GameUpdaterCommunicationLayer {
@@ -63,9 +67,10 @@ interface GameUpdaterCommunicationLayer {
 }
 
 enum GameUpdaterStatesEnum {
-	SPACE = 0,
-	PLAYER = 1,
-	WORLD = 2,
+	GAMESTATE = 0,
+	SPACE = 1,
+	PLAYER = 2,
+	WORLD = 3,
 }
 
 /**
@@ -78,7 +83,8 @@ export class GameUpdater implements GameHandler {
 	private spaceHandle: SpaceHandle;
 	private playerHandle: PlayerHandle;
 
-	private constructor(private connection: ConnectionInterface, spaceState: ReactUpdate<PlayerHoldableSpace[]>, playerState?: ReactUpdate<Player>, worldState?: ReactUpdate<''>) {
+	private constructor(private icclayer: ICClient, gameState: ReactUpdate<GameState>, spaceState: ReactUpdate<PlayerHoldableSpace[]>, playerState?: ReactUpdate<Player>, worldState?: ReactUpdate<''>) {
+		this.states.push(gameState);
 		this.states.push(spaceState);
 		if (playerState) {
 			this.states.push(playerState);
@@ -96,14 +102,14 @@ export class GameUpdater implements GameHandler {
 			getSpacesState: this.states[GameUpdaterStatesEnum.SPACE] as ReactUpdate<PlayerHoldableSpace[]>,
 			getPlayersState: this.states[GameUpdaterStatesEnum.PLAYER] as ReactUpdate<Player>,
 			getWorldState: this.states[GameUpdaterStatesEnum.WORLD] as ReactUpdate<"">,
-			getUUID: () => this.connection.getUUID.bind(this.connection)(),
-			getGameUUID: () => this.connection.getGameUUID.bind(this.connection)(),
-			send: (data: BaseIntent) => { this.connection.send.bind(this.connection)(data) }
+			getUUID: () => this.icclayer.getID.bind(this.icclayer)().player_uuid,
+			getGameUUID: () => this.icclayer.getID.bind(this.icclayer)().game_uuid,
+			send: (data: BaseIntent) => { this.icclayer.send.bind(this.icclayer)(data) }
 		}
 	}
 
-	public static create(connection: ConnectionInterface, spaceState: ReactUpdate<PlayerHoldableSpace[]>, playerState?: ReactUpdate<Player>, worldState?: ReactUpdate<''>): GameUpdater {
-		return new GameUpdater(connection, spaceState, playerState, worldState);
+	public static create(icclayer: ICClient, gameState: ReactUpdate<GameState>, spaceState: ReactUpdate<PlayerHoldableSpace[]>, playerState?: ReactUpdate<Player>, worldState?: ReactUpdate<''>): GameUpdater {
+		return new GameUpdater(icclayer, gameState, spaceState, playerState, worldState);
 	}
 
 	public isGameUpdate(event: BaseResponse): boolean {
@@ -149,7 +155,17 @@ export class GameUpdater implements GameHandler {
 			}
 			if (event.response === 'respond') {
 				const decision = this.playerHandle.returnDecisionTree(event);
-				this.connection.askPlayer(decision);
+				this.icclayer.askPlayer([...decision]);
+			}
+			if (event.response === 'update') {
+				if (event.recipient === 'global') {
+					(this.states[GameUpdaterStatesEnum.GAMESTATE] as ReactUpdate<GameState>).setState('STARTED');
+					return;
+				}
+			}
+			const ids = this.icclayer.getID();
+			if (ids.player_uuid === ids.host_uuid && this.states[GameUpdaterStatesEnum.GAMESTATE].state === 'WAITING') {
+				this.icclayer.askPlayer(['start']);
 			}
 		} else {
 			//some other stuff i guess
@@ -158,7 +174,7 @@ export class GameUpdater implements GameHandler {
 
 	public sendDecision(choice: DecisionType): void {
 		this.playerHandle.sendDecision(choice);
-		this.connection.askPlayer([]);
+		this.icclayer.askPlayer([]);
 	}
 
 	public castObject(message: object): Optional<GlobalUpdateStruct> {
@@ -189,13 +205,13 @@ export class SpaceHandle {
 				space.players.push(player);
 			}
 		}
-		this.m_gcl?.getSpacesState(spaces);
+		this.m_gcl?.getSpacesState.setState(spaces);
 		return true;
 	}
 
 	private m_replaceSpace(uuid: UUID.UUID, space: Space) {
 		//replace space but keep players and buildings
-		this.m_gcl.getSpacesState((old_space) => {
+		this.m_gcl.getSpacesState.setState((old_space) => {
 			const new_space = [...old_space];
 			const index = new_space.findIndex((space) => {
 				return space.uuid === uuid;
@@ -220,7 +236,7 @@ export class SpaceHandle {
 
 	public playerChanged(message: PlayerConnectionStruct): boolean {
 		if (!message?.position && message?.name && !message?.uuid) return false;
-		this.m_gcl.getSpacesState((old_space) => {
+		this.m_gcl.getSpacesState.setState((old_space) => {
 
 			const new_space = [...old_space];
 			//clear old player
@@ -274,7 +290,21 @@ export class PlayerHandle {
 	}
 
 	public sendDecision(choice: DecisionType): void {
-		const intent_block: ResponseIntent = {
+		let intent_block: CommandIntent | ResponseIntent;
+
+		if (choice === 'start') {
+			intent_block = {
+				intent: 'command',
+				command: choice as MonopolyEngineCommands,
+				name: '___',
+				uuid: this.m_gcl.getUUID(),
+				game_uuid: this.m_gcl.getGameUUID()
+			}
+			this.m_gcl.send(intent_block);
+			return;
+		}
+
+		intent_block = {
 			intent: 'response',
 			state: 'turn',
 			decision: choice,

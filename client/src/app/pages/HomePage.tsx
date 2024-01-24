@@ -7,10 +7,11 @@ import { DataEvent, ErrorEvent } from '@/interface/events';
 import ReactJson from 'react-json-view';
 import RowOrganizer from '../components/board/RowOrganizer';
 import { BaseIntent, BaseResponse, DecisionType, GameResponse, Identifiable, Player, Space, UUID } from 'shared-types';
-import { GameHandler, GameUpdater, ISource, SpaceHandle } from '@/util/GameUpdater';
+import { GameHandler, GameState, GameUpdater, ISource, SpaceHandle } from '@/util/GameUpdater';
 import PopUp from '../components/popup/PopUp';
 import UsePopUp from '@/hooks/UsePopUp';
 import Board from '../components/board/Board';
+import { ConnectionInterface } from '@/obj/connection';
 
 
 export type PlayerHoldableSpace = Space & {
@@ -21,6 +22,11 @@ export type GameID = {
 	game_uuid: UUID.UUID,
 	host_uuid: UUID.UUID,
 	player_uuid: UUID.UUID
+}
+
+export interface ICClient extends ConnectionInterface {
+	askPlayer(tree: DecisionType[]): void;
+	getID(): GameID;
 }
 
 
@@ -34,6 +40,9 @@ function HomePage() {
 	//uuid stuff
 	const uuid = useRef<GameID>({ game_uuid: "", player_uuid: "", host_uuid: "" });
 	const [spaces, setSpaces] = useState<PlayerHoldableSpace[]>([]);
+
+	//gamestate
+	const [gamestate, setGamestate] = useState<GameState>("WAITING");
 
 	//popup window.
 	const popup = (UsePopUp(true));
@@ -60,16 +69,13 @@ function HomePage() {
 			send: ((intent: BaseIntent) => {
 				connection.send(intent);
 			}),
-			getUUID: (() => {
-				return uuid.current.player_uuid;
-			}).bind(uuid),
-			getGameUUID: (() => {
-				return uuid.current.game_uuid;
+			getID: (() => {
+				return uuid.current;
 			}).bind(uuid),
 			askPlayer: (tree: DecisionType[]) => {
 				setDecisions(tree);
 			}
-		}, setSpaces)
+		}, { state: gamestate, setState: setGamestate }, { state: spaces, setState: setSpaces })
 
 	}
 
