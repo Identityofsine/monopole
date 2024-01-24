@@ -16,8 +16,9 @@ export type PlayerHoldableSpace = Space & {
 	players: Player[];
 }
 
-type GameID = {
+export type GameID = {
 	game_uuid: UUID.UUID,
+	host_uuid: UUID.UUID,
 	player_uuid: UUID.UUID
 }
 
@@ -26,9 +27,14 @@ function HomePage() {
 
 	const connection = useConnectionObject("ws://localhost:8337/");
 
-	const uuid = useRef<GameID>({ game_uuid: "", player_uuid: "" });
+	//debug
 	const [text, setText] = useState<object[]>([]);
+
+	//uuid stuff
+	const uuid = useRef<GameID>({ game_uuid: "", player_uuid: "", host_uuid: "" });
 	const [spaces, setSpaces] = useState<PlayerHoldableSpace[]>([]);
+
+	//popup window.
 	const popup = (UsePopUp(true));
 
 	//temp state storage
@@ -44,11 +50,10 @@ function HomePage() {
 		popup.close();
 	}
 
-	useEffect(() => {
-		if (!connection) return;
+	function m_gameUpdaterFactory() {
+		if (!connection) throw new Error("Connection not initialized");
 
-		//init gameupdater
-		game_updater.current = GameUpdater.create({
+		return GameUpdater.create({
 			send: ((intent: BaseIntent) => {
 				connection.send(intent);
 			}),
@@ -63,30 +68,21 @@ function HomePage() {
 			}
 		}, setSpaces)
 
+	}
+
+	useEffect(() => {
+		if (!connection) return;
+
+		//init gameupdater
+		game_updater.current = m_gameUpdaterFactory();
+
 		connection.Connection.on("message", (event: DataEvent) => {
-
-			//check messages
-			if (event.data.response === "id") {
-				const data = event.data as BaseResponse;
-				if (typeof data.message === 'string') return;
-
-				if (data.message?.message !== "JUST_JOINED") return;
-
-				const ids: GameID = data.message?.object as any;
-				if (ids)
-					uuid.current = ids;
-				else
-					return;
-			}
-
 			//check if gameUpdater is initialized
 			const game_functions = game_updater.current;
 			if (!game_functions) throw new Error("Game updater not initialized");
+			const ids = game_functions.handleGameMessage(event.data);
+			if (ids) uuid.current = ids;
 
-			if (game_functions.isGameUpdate(event.data)) {
-				const game_event = event.data as GameResponse;
-				game_functions.handleGameUpdate(game_event);
-			}
 			setText((old_text) => {
 				return [...old_text, event.data];
 			});

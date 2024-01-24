@@ -1,4 +1,4 @@
-import { PlayerHoldableSpace } from "@/app/pages/HomePage";
+import { GameID, PlayerHoldableSpace } from "@/app/pages/HomePage";
 import { Connection, ConnectionInterface } from "@/obj/connection";
 import { Dispatch, SetStateAction } from "react";
 import { BaseIntent, BaseResponse, DecisionType, ExpectedMessages, GameResponse, Identifiable, Player, ResponseIntent, UUID, Space } from "shared-types";
@@ -32,6 +32,7 @@ export interface GameHandler {
 	isGameUpdate(event: BaseResponse): boolean;
 	isMessageObject(event: BaseResponse): boolean;
 	handleGameUpdate(event: GameResponse): void;
+	handleGameMessage(event: BaseResponse): GameID | void;
 	castObject(message: object): Optional<GlobalUpdateStruct>;
 	sendDecision(choice: DecisionType): void;
 }
@@ -110,6 +111,25 @@ export class GameUpdater implements GameHandler {
 
 	public updateSpaces(message: GlobalUpdateStruct): boolean {
 		return this.spaceHandle.updateSpaces(message);
+	}
+
+	public handleGameMessage(message: BaseResponse): GameID | void {
+
+		//check messages
+		if (message.response === "id") {
+			const data = message as BaseResponse;
+			if (typeof data.message === 'string') return;
+
+			if (data.message?.message !== "JUST_JOINED") return;
+
+			const ids: GameID = data.message?.object as any;
+			if (ids)
+				return ids;
+		}
+		if (this.isGameUpdate(message)) {
+			const game_event = message as GameResponse;
+			this.handleGameUpdate(game_event);
+		}
 	}
 
 	public handleGameUpdate(event: GameResponse): void {
