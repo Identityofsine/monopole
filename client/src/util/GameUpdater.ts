@@ -1,6 +1,7 @@
 import { GameID, ICClient, PlayerHoldableSpace } from "@/app/pages/HomePage";
+import { send } from "process";
 import { Dispatch, SetStateAction } from "react";
-import { BaseIntent, BaseResponse, DecisionType, ExpectedMessages, GameResponse, Identifiable, Player, ResponseIntent, UUID, Space, CommandIntent, IsCommand, MonopolyEngineCommands } from "shared-types";
+import { BaseIntent, BaseResponse, DecisionType, ExpectedMessages, GameResponse, Identifiable, Player, ResponseIntent, UUID, Space, CommandIntent, IsCommand, MonopolyEngineCommands, ErrorResponse } from "shared-types";
 
 
 //TODO: move to shared-types
@@ -83,6 +84,7 @@ export class GameUpdater implements GameHandler {
 	private states: GameUpdaterStates[] = [];
 	private spaceHandle: SpaceHandle;
 	private playerHandle: PlayerHandle;
+	private errorHandle: ErrorHandle;
 
 	private constructor(private icclayer: ICClient, gameState: ReactUpdate<GameState>, spaceState: ReactUpdate<PlayerHoldableSpace[]>, playerState?: ReactUpdate<Player[]>, worldState?: ReactUpdate<''>) {
 		this.states.push(gameState);
@@ -96,6 +98,7 @@ export class GameUpdater implements GameHandler {
 		//this must execute after the states are set
 		this.spaceHandle = new SpaceHandle(this.m_GCLFactory.bind(this)());
 		this.playerHandle = new PlayerHandle(this.m_GCLFactory.bind(this)());
+		this.errorHandle = new ErrorHandle(this.m_GCLFactory.bind(this)());
 	}
 
 	private m_GCLFactory(): GameUpdaterCommunicationLayer {
@@ -130,8 +133,16 @@ export class GameUpdater implements GameHandler {
 		return this.playerHandle.getPlayer(uuid);
 	}
 
+	public isError(message: BaseResponse): boolean {
+		return message.response === 'error';
+	}
+
 	public handleGameMessage(message: BaseResponse): GameID | void {
 
+		//check for error
+		if (this.isError(message)) {
+			this.errorHandle.throwError(message as ErrorResponse);
+		}
 		//check messages
 		if (message.response === "id") {
 			const data = message as BaseResponse;
@@ -349,7 +360,15 @@ export class PlayerHandle {
 		this.m_gcl.send(intent_block);
 	}
 
-
-
 }
 
+
+export class ErrorHandle {
+
+	public constructor(private m_gcl: GameUpdaterCommunicationLayer) {
+	}
+
+	public throwError(message: ErrorResponse) {
+		alert(message.message);
+	}
+}

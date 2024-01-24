@@ -21,7 +21,7 @@ function Space(props: SpaceProps) {
 			<div className="price flex center-flex margin-top-auto">
 				{
 					props.owner
-						? props.owner
+						? <span>{props.owner}</span>
 						: props.price !== 0
 							? <span>${props.price}</span>
 							: <span>&nbsp;</span>
