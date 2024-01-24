@@ -243,12 +243,11 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 	private addPlayer(player: Player, ws: WebSocket, game: MonopolyGame): void {
 		game.engine.addPlayer(player, this);
 		game.clients.set(player.UUID, ws as WebSocket);
-
 		this.onPlayerAdded(player, game.engine.ID);
 
 		const id_message: BaseResponse = {
 			response: 'id',
-			message: { message: 'JUST_JOINED', object: { player_uuid: player.UUID, game_uuid: game.engine.ID } },
+			message: { message: 'JUST_JOINED', object: { player_uuid: player.UUID, game_uuid: game.engine.ID, host_id: game.engine.HostID } },
 			success: true,
 		}
 		ws.send(JSON.stringify(id_message));

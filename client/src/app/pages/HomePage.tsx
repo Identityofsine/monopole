@@ -41,6 +41,8 @@ function HomePage() {
 	//temp state storage
 	const [name, setName] = useState<string>("");
 	const [game_id, setGameID] = useState<UUID.UUID>("");
+
+	//decisions
 	const [decisions, setDecisions] = useState<DecisionType[]>([]);
 
 
