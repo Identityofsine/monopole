@@ -274,6 +274,8 @@ export class SpaceHandle {
 
 export class PlayerHandle {
 
+	private players: Player[] = [];
+
 	public constructor(private m_gcl: GameUpdaterCommunicationLayer) { }
 
 	public roll() {
@@ -296,30 +298,29 @@ export class PlayerHandle {
 	}
 
 	public getPlayer(uuid: UUID.UUID): Player | undefined {
-		return this.m_gcl.getPlayersState.state.find((player) => {
+
+		return this.players.find((player) => {
 			return player.uuid === uuid;
 		});
 	}
 
 	public updatePlayer(object: Player) {
-		this.m_gcl.getPlayersState.setState((old_players) => {
-			const new_players = [...old_players];
-			const index = new_players.findIndex((player) => {
-				return player.uuid === object.uuid;
-			});
-			if (index !== -1) {
-				new_players[index] = object;
-			} else {
-				new_players.push(object);
-			}
-			return new_players;
+		const new_players = [...this.players];
+		const index = new_players.findIndex((player) => {
+			return player.uuid === object.uuid;
 		});
+		if (index !== -1) {
+			new_players[index] = object;
+		} else {
+			new_players.push(object);
+		}
+		this.m_gcl.getPlayersState.setState(new_players);
+		this.players = new_players;
 	}
 
 	public addPlayer(object: Player) {
-		this.m_gcl.getPlayersState.setState((old_players) => {
-			return [...old_players, object];
-		});
+		this.players.push(object);
+		this.m_gcl.getPlayersState.setState(this.players);
 	}
 
 	public sendDecision(choice: DecisionType): void {
