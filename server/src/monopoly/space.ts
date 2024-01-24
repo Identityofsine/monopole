@@ -9,7 +9,7 @@ export type Rent = number[];
 
 export type Color = {
 	name: string;
-	id: number;
+	hex: string;
 }
 
 export abstract class Space extends Identifiable {
@@ -92,7 +92,7 @@ export class Property extends Space {
 
 export class Street extends Property {
 
-	constructor(public readonly id: number, public readonly name: string, public readonly price: number, public readonly rent: Rent, public readonly color: Color) {
+	constructor(public readonly id: number, public readonly name: string, public readonly price: number, public readonly rent: Rent, public readonly group: number, public readonly color: Color) {
 		super(id, name, 1, price);
 	}
 

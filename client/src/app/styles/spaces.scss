@@ -4,6 +4,7 @@
 	background-color: #fff;
 	outline: 1px solid #000;
 	aspect-ratio: 0.625;
+	font-size: .2rem;
 
 	&.big {
 		width: 25%;
@@ -20,7 +21,6 @@
 
 	p,
 	span {
-		font-size: .2rem;
 		color: black;
 	}
 
@@ -31,9 +31,18 @@
 
 
 	.price {
+		height: .75rem;
+		max-height: 1rem;
 		width: 100%;
-		background-color: #EC343A;
+		//background-color: #EC343A;
 		padding: .25rem 0rem;
+
+		&.owned {
+			span {
+				font-weight: bold;
+				font-size: 1.4em;
+			}
+		}
 	}
 }
 

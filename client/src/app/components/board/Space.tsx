@@ -15,10 +15,17 @@ function Space(props: SpaceProps) {
 			</div>
 			<div className="players flex justify-center">
 				{props.players?.map((player, idx) => (
-					<Piece player={player} color={{ name: "Blue", hex: "#0000FF" }} key={idx} />
+					<Piece
+						player={player}
+						color={{ name: "Blue", hex: "#0000FF" }}
+						key={idx}
+					/>
 				))}
 			</div>
-			<div className="price flex center-flex margin-top-auto">
+			<div
+				className={`price flex center-flex margin-top-auto ${props.owner ? 'owned' : ''}`}
+				style={{ backgroundColor: props?.color ? props.color.hex : "#FFFFFF" }}
+			>
 				{
 					props.owner
 						? <span>{props.owner}</span>

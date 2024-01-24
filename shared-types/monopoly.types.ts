@@ -18,9 +18,11 @@ export type Space = Identifiable & {
 	price?: number;
 	_owner?: UUID; //player id
 	owner?: string; //player name
+	color?: Color;
 	buildings?: number;
 	onLand?: (...args: any) => void;
 }
+
 
 export type Trade = {
 	source: Player;

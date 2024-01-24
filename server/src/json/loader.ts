@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { Go, Space, Street, CommunityChest, FreeParking, Chance, Tax, Railroad, Utility, GoToJail, Jail } from '../monopoly/space';
+import { Go, Space, Street, CommunityChest, FreeParking, Chance, Tax, Railroad, Utility, GoToJail, Jail, Color } from '../monopoly/space';
 import { BuildingCommunicationLayer } from '../monopoly/monopoly';
 // Purpose: Load objects from path
 
@@ -31,14 +31,32 @@ export function loadObjectFromPath<T>(path: string): T | null {
  *
 */
 
+type ColorJSON = {
+	"id": number,
+	"colorName": string,
+	"hex": string
+}
+
+type ColorFileJSON = {
+	groups: ColorJSON[]
+}
+
+function castColor(color_preobject: ColorJSON): Color {
+	return {
+		name: color_preobject.colorName,
+		hex: color_preobject.hex
+	}
+}
+
 export function castSpace(square_preobject: Space, buildingCommunicationLayer?: BuildingCommunicationLayer): Space {
 	switch (square_preobject.type) {
 		case 0: {
 			return new Go();
 		}
 		case 1: {
+			const colors = cachePath<ColorFileJSON>('./src/data/color.json');
 			const street = square_preobject as Street;
-			return new Street(street.id, street.name, street.price, street.rent, street.color);
+			return new Street(street.id, street.name, street.price, street.rent, street?.group, colors.groups[street?.group] ? castColor(colors.groups[street.group]) : street.color);
 		}
 		case 2: {
 			const community_chest = square_preobject as CommunityChest;

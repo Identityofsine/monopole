@@ -3,53 +3,54 @@
       {
         "id": 0,
         "colorName": "Brown",
-        "numberOfProperties": 2
+				"hex": "#955436"
       },
       {
         "id": 1,
         "colorName": "Light Blue",
-        "numberOfProperties": 3
+				"hex": "#aae0fc"
       },
       {
         "id": 2,
         "colorName": "Pink",
-        "numberOfProperties": 3
+				"hex": "#d93a96"
       },
       {
         "id": 3,
         "colorName": "Orange",
-        "numberOfProperties": 3
+				"hex": "#f7941f"
       },
       {
         "id": 4,
         "colorName": "Red",
-        "numberOfProperties": 3
+				"hex": "#ed1b26"
       },
       {
         "id": 5,
-        "colorName": "Yellow",
-        "numberOfProperties": 3
+        "colorName": "Yellow", 
+				"hex": "#fef200"
       },
       {
         "id": 6,
         "colorName": "Green",
-        "numberOfProperties": 3
+				"hex": "#1fb25a"
       },
       {
         "id": 7,
         "colorName": "Blue",
-        "numberOfProperties": 2
+				"hex": "#0072bb"
+
       },
       {
         "id": 8,
         "colorName": "Railroad",
-        "numberOfProperties": 4
+				"hex": "#d93a96"
       },
       {
         "id": 9,
         "colorName": "Utility",
-        "numberOfProperties": 2
-      }
+				"hex": "#d93a96"
+			}
     ]
   }
   
