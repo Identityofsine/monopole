@@ -12,7 +12,7 @@ export type AlertType = "ERROR" | "WARNING" | "INFO" | "SUCCESS";
 
 export type AlertFunction = (alert: string, alert_type?: AlertType) => void;
 
-function Alert(display_time: number = 6000): AlertObject {
+function Alert(display_time: number = 4500): AlertObject {
 
 	type AlertQueue = {
 		alert: string,
@@ -42,8 +42,13 @@ function Alert(display_time: number = 6000): AlertObject {
 
 	function m_pushAlert(alert: AlertQueue) {
 		alert_queue.current.push(alert);
-		setAlertQueueState(alert);
-		setDisplay(true);
+		if (!display) {
+			const popped_alert = m_popAlert();
+			if (popped_alert) {
+				setAlertQueueState(popped_alert);
+				setDisplay(true);
+			}
+		}
 	}
 
 	function m_popAlert(): AlertQueue | undefined {
@@ -60,17 +65,16 @@ function Alert(display_time: number = 6000): AlertObject {
 		}, [display])
 
 		useEffect(() => {
-			console.log("state change: ", l_display);
-			if (!l_display && display) {
-				l_onDisplayEnd();
-			} else {
-			}
 		}, [l_display]);
 
 		function wait() {
-			setTimeout(() => {
-				setLDisplay(false);
-			}, display_time - 1500);
+			if (l_display) {
+				setTimeout(() => {
+					setLDisplay(false);
+				}, display_time - 1500);
+			} else {
+				l_onDisplayEnd();
+			}
 		}
 
 		function cancel() {
@@ -81,10 +85,10 @@ function Alert(display_time: number = 6000): AlertObject {
 		}
 
 		return (
-			<div>
+			<div className="fixed alert-box-container">
 				<div
 					className={`alert-box ${l_display ? 'show' : 'hide'}`}
-					onTransitionEnd={() => { wait(); console.log("transition end"); }}
+					onTransitionEnd={() => { wait(); }}
 				>
 					<h2>{alert_queue_state.alert_type}:{alert_queue_state.alert}</h2>
 				</div>

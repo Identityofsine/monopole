@@ -1,12 +1,16 @@
 .alert-box {
 	transition: all 1.5s ease-in-out;
-	background: #111;
+	background: rgba(var(--callout-rgb), .35);
+	border: 1px solid rgba(var(--callout-border-rgb), .4);
+	border-radius: var(--border-radius);
+	width: 5rem;
+	height: 2.5rem;
 
 	&.show {
 		background: #fe6d73;
 	}
 
-	&.hide {
-		background: #111;
+	h2 {
+		font-size: .5rem;
 	}
 }
