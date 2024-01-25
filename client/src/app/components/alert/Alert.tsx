@@ -87,10 +87,10 @@ function Alert(display_time: number = 4500): AlertObject {
 		return (
 			<div className="fixed alert-box-container">
 				<div
-					className={`alert-box ${l_display ? 'show' : 'hide'}`}
+					className={`absolute center-absolute-x alert-box ${l_display ? 'show' : 'hide'}`}
 					onTransitionEnd={() => { wait(); }}
 				>
-					<h2>{alert_queue_state.alert_type}:{alert_queue_state.alert}</h2>
+					<h2 className="center-text">{alert_queue_state.alert_type}:{alert_queue_state.alert}</h2>
 				</div>
 			</div>
 		)

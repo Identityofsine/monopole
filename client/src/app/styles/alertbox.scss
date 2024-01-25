@@ -1,14 +1,27 @@
+.alert-box-container {
+	//center the alert box over screen no matter position
+	width: 100vw;
+	height: 100vh;
+	top: 0;
+	left: 0;
+	z-index: 250;
+	pointer-events: none;
+}
+
 .alert-box {
-	transition: all 1.5s ease-in-out;
+	transition: all .75s ease-in-out;
 	background: rgba(var(--callout-rgb), .35);
+	backdrop-filter: blur(2px);
 	border: 1px solid rgba(var(--callout-border-rgb), .4);
 	border-radius: var(--border-radius);
-	width: 5rem;
+	width: 6rem;
 	height: 2.5rem;
+	top: -25%;
 
 	&.show {
-		background: #fe6d73;
+		top: 2.5%;
 	}
+
 
 	h2 {
 		font-size: .5rem;
