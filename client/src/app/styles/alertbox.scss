@@ -10,18 +10,40 @@
 
 .alert-box {
 	transition: all .75s ease-in-out;
-	background: rgba(var(--callout-rgb), .35);
-	backdrop-filter: blur(2px);
+	background: rgba(var(--callout-rgb), .45);
+	backdrop-filter: blur(4px);
 	border: 1px solid rgba(var(--callout-border-rgb), .4);
 	border-radius: var(--border-radius);
-	width: 6rem;
-	height: 2.5rem;
-	top: -25%;
+	min-width: 3rem;
+	max-width: 6rem;
+	min-height: 1rem;
+	max-height: 4.5rem;
+	top: 2.5%;
 
 	&.show {
 		top: 2.5%;
 	}
 
+	.alert-icon {
+		width: 1rem;
+		height: auto;
+	}
+
+
+	&.content-container {
+		padding: .25rem .25rem;
+	}
+
+	.gap-01 {
+		gap: .15rem;
+	}
+
+	.message {
+		font-size: .45rem;
+		font-weight: 500;
+		margin: 0;
+		padding: 0;
+	}
 
 	h2 {
 		font-size: .5rem;

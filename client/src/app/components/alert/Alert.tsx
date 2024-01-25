@@ -24,7 +24,6 @@ function Alert(display_time: number = 4500): AlertObject {
 	const [display, setDisplay] = useState<boolean>(false);
 
 	function _throw(alert: string, alert_type: AlertType = "INFO") {
-		console.log(`${alert_type}:` + alert);
 		m_pushAlert({ alert: alert, alert_type: alert_type });
 	}
 
@@ -87,10 +86,13 @@ function Alert(display_time: number = 4500): AlertObject {
 		return (
 			<div className="fixed alert-box-container">
 				<div
-					className={`absolute center-absolute-x alert-box ${l_display ? 'show' : 'hide'}`}
+					className={`flex content-container absolute center-absolute-x alert-box ${l_display ? 'show' : 'hide'}`}
 					onTransitionEnd={() => { wait(); }}
 				>
-					<h2 className="center-text">{alert_queue_state.alert_type}:{alert_queue_state.alert}</h2>
+					<div className="flex align-bottom fit-height gap-01">
+						<img src="/icon/warning-skuo.svg" alt="warning" className="alert-icon" />
+						<p className="center-text message">{alert_queue_state.alert}</p>
+					</div>
 				</div>
 			</div>
 		)
