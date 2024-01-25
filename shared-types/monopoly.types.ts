@@ -7,6 +7,11 @@ declare type Identifiable = {
 	name: string;
 }
 
+type Color = {
+	name: string;
+	hex: string;
+}
+
 export type Player = Identifiable & {
 	uuid: UUID;
 	name: string;

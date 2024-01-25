@@ -12,6 +12,7 @@ import PopUp from '../components/popup/PopUp';
 import UsePopUp from '@/hooks/UsePopUp';
 import Board from '../components/board/Board';
 import { ConnectionInterface } from '@/obj/connection';
+import Alert from '../components/alert/Alert';
 
 
 export type PlayerHoldableSpace = Space & {
@@ -27,6 +28,7 @@ export type GameID = {
 export interface ICClient extends ConnectionInterface {
 	askPlayer(tree: DecisionType[]): void;
 	getID(): GameID;
+	alert(alert: string, alert_type: "ERROR" | "WARNING" | "INFO" | "SUCCESS"): void;
 }
 
 
@@ -48,6 +50,8 @@ function HomePage() {
 
 	//popup window.
 	const popup = (UsePopUp(true));
+	//alert window
+	const alert = Alert();
 
 	//temp state storage
 	const [name, setName] = useState<string>("");
@@ -77,7 +81,8 @@ function HomePage() {
 			}).bind(uuid),
 			askPlayer: (tree: DecisionType[]) => {
 				setDecisions(tree);
-			}
+			},
+			alert: alert.throwFunction.bind(alert)
 		}, { getState: (() => { return gamestate_ref.current; }).bind(gamestate_ref), setState: setGamestate }, { getState: () => spaces, setState: setSpaces }, { getState: () => players, setState: setPlayers })
 
 	}
@@ -143,6 +148,7 @@ function HomePage() {
 					<span onClick={() => popup.open()}>Join Game</span>
 				</div>
 			}
+			<alert.element key="alert" />
 			<div className={styles.center}>
 				<Board spaces={spaces} decisions={decisions} iface={game_updater.current as ISource} />
 			</div>

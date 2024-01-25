@@ -1,3 +1,4 @@
+import { AlertFunction, AlertType } from "@/app/components/alert/Alert";
 import { GameID, ICClient, PlayerHoldableSpace } from "@/app/pages/HomePage";
 import { send } from "process";
 import { Dispatch, SetStateAction } from "react";
@@ -66,6 +67,7 @@ interface GameUpdaterCommunicationLayer {
 	getWorldState: ReactUpdate<"">;
 	getUUID: () => string;
 	getGameUUID: () => string;
+	alert: AlertFunction;
 	send: (message: BaseIntent) => void;
 }
 
@@ -109,6 +111,7 @@ export class GameUpdater implements GameHandler {
 			getWorldState: this.states[GameUpdaterStatesEnum.WORLD] as ReactUpdate<"">,
 			getUUID: () => this.icclayer.getID.bind(this.icclayer)().player_uuid,
 			getGameUUID: () => this.icclayer.getID.bind(this.icclayer)().game_uuid,
+			alert: (message: string, type: AlertType = "INFO") => { this.icclayer.alert.bind(this.icclayer)(message, type) },
 			send: (data: BaseIntent) => { this.icclayer.send.bind(this.icclayer)(data) }
 		}
 	}
@@ -369,20 +372,20 @@ export class PlayerHandle {
 }
 
 
-export class AlertSystem {
+class AlertSystem {
 
 	public constructor(private m_gcl: GameUpdaterCommunicationLayer) {
 	}
 
 	public throwInfo(message: string) {
-		alert("Info: " + message);
+		this.m_gcl.alert(message, "INFO");
 	}
 
 	public throwWarning(message: ErrorResponse) {
-		alert("Warning: " + message.message);
+		this.m_gcl.alert(message.message, "WARNING");
 	}
 
 	public throwError(message: ErrorResponse) {
-		alert("Warning: " + message.message);
+		this.m_gcl.alert(message.message, "ERROR");
 	}
 }

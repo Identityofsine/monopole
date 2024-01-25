@@ -1,0 +1,12 @@
+.alert-box {
+	transition: all 1.5s ease-in-out;
+	background: #111;
+
+	&.show {
+		background: #fe6d73;
+	}
+
+	&.hide {
+		background: #111;
+	}
+}
