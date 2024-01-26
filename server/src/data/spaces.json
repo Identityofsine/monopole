@@ -32,6 +32,7 @@
     },
     {
       "name": "Income Tax",
+			"price": 100,
       "type": 5,
       "buyable": false
     },
@@ -322,7 +323,7 @@
     {
       "name": "Luxury Tax",
       "type": 5,
-			"price": 100,
+			"price": 75,
       "buyable": false
     },
     {

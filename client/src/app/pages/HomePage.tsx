@@ -12,7 +12,7 @@ import PopUp from '../components/popup/PopUp';
 import UsePopUp from '@/hooks/UsePopUp';
 import Board from '../components/board/Board';
 import { ConnectionInterface } from '@/obj/connection';
-import Alert from '../components/alert/Alert';
+import Alert, { AlertFunction, AlertIcon } from '../components/alert/Alert';
 
 
 export type PlayerHoldableSpace = Space & {
@@ -28,7 +28,7 @@ export type GameID = {
 export interface ICClient extends ConnectionInterface {
 	askPlayer(tree: DecisionType[]): void;
 	getID(): GameID;
-	alert(alert: string, alert_type: "ERROR" | "WARNING" | "INFO" | "SUCCESS"): void;
+	alert: AlertFunction;
 }
 
 

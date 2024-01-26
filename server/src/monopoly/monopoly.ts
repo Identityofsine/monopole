@@ -129,6 +129,7 @@ export class Monopoly {
 		const new_position: number = player.move(spaces);
 		if (new_position < current_position) {
 			player.giveMoney(200);
+			player.notify({ type: NotificationType.INFO, message: 'EARNED', data: 'Collected 200 for passing GO!' })
 			console.log('[monopoly] player %s passed go', player.Name);
 		}
 
@@ -191,7 +192,7 @@ export class Monopoly {
 		const jailSpace: number = this.spaces.findIndex((space) => space.type === 9);
 		player.setPosition(jailSpace);
 		player.Jail = true;
-		player.notify({ type: NotificationType.DECISION, message: 'JAIL_UPDATE', decision: ['pay', 'roll'] });
+		player.notify({ type: NotificationType.DECISION, message: 'SENT_TO_JAIL', decision: ['pay', 'roll'], data: 'You are now in Jail!' });
 	}
 
 	public getPlayer(uuid: UUID.UUID): Player | undefined {

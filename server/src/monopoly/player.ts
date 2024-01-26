@@ -71,13 +71,14 @@ export class Player extends Identifiable {
 	}
 
 	public takeMoney(amount: number): number {
-		//dont allow negative money
 		if ((this.money - amount) < 0) {
 			const temp = this.money;
 			this.money = 0;
+			this.notify({ message: 'MONEY_UPDATE', type: NotificationType.DECISION, decision: 'mortgage' });
 			return temp;
 		}
 		this.money -= amount;
+		this.notify({ message: 'PAID', type: NotificationType.INFO, data: `${amount} was taken from you` });
 		return amount;
 	}
 

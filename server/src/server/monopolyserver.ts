@@ -1,6 +1,6 @@
 import { MonopolyEngine, PlayerCommunicationLayer } from "../monopoly/monopoly";
 import { MonopolyError } from "../monopoly/monopoly.error";
-import { DecisionType, UUID, Filter, NotificationEvent, ExpectedInput, ExpectedMessages, ExpectedAlertMessages } from "shared-types";
+import { DecisionType, UUID, Filter, NotificationEvent, ExpectedInput, ExpectedMessages, ExpectedAlertMessages, NotificationType } from "shared-types";
 import { Player } from "../monopoly/player";
 import ServerInstance from "./websocket";
 import * as WebSocket from 'ws';
@@ -294,8 +294,10 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 		const socket = engine.clients.get(player.UUID);
 		if (!socket) throw new MonopolyError('No socket found');
 
+		const response_type = notification.type === NotificationType.DECISION ? 'respond' : 'info';
+
 		const message: GameResponse = {
-			response: 'respond',
+			response: response_type,
 			recipient: 'player',
 			decision: notification.decision,
 			message: { message: notification.message, object: notification?.data ?? {} },

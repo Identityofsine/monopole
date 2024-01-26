@@ -2,7 +2,7 @@ import { AlertFunction, AlertIcon, AlertType } from "@/app/components/alert/Aler
 import { GameID, ICClient, PlayerHoldableSpace } from "@/app/pages/HomePage";
 import { send } from "process";
 import { Dispatch, SetStateAction } from "react";
-import { BaseIntent, BaseResponse, DecisionType, ExpectedMessages, GameResponse, Identifiable, Player, ResponseIntent, UUID, Space, CommandIntent, IsCommand, MonopolyEngineCommands, ErrorResponse } from "shared-types";
+import { BaseIntent, BaseResponse, DecisionType, ExpectedMessages, GameResponse, Identifiable, Player, ResponseIntent, UUID, Space, CommandIntent, IsCommand, MonopolyEngineCommands, ErrorResponse, ExpectedAlertMessages } from "shared-types";
 
 
 //TODO: move to shared-types
@@ -111,7 +111,7 @@ export class GameUpdater implements GameHandler {
 			getWorldState: this.states[GameUpdaterStatesEnum.WORLD] as ReactUpdate<"">,
 			getUUID: () => this.icclayer.getID.bind(this.icclayer)().player_uuid,
 			getGameUUID: () => this.icclayer.getID.bind(this.icclayer)().game_uuid,
-			alert: (message: string, type: AlertType = "INFO") => { this.icclayer.alert.bind(this.icclayer)(message, type) },
+			alert: (message: string, type: AlertType = "INFO", icon_type: AlertIcon = 'alert') => { this.icclayer.alert.bind(this.icclayer)(message, type, icon_type) },
 			send: (data: BaseIntent) => { this.icclayer.send.bind(this.icclayer)(data) }
 		}
 	}
@@ -173,8 +173,24 @@ export class GameUpdater implements GameHandler {
 
 	public handleInfoUpdate(message: BaseResponse) {
 		if (typeof message.message === 'string') return;
-		const info = message.message as { message: ExpectedMessages, object: string };
-		this.alerter.throwInfo(info.object);
+		const info = message.message as { message: ExpectedAlertMessages, object: string };
+		let alert_icon: AlertIcon = 'info';
+		switch (info.message) {
+			case 'BUILDING_BOUGHT': {
+				alert_icon = 'house';
+				break;
+			}
+			case 'PAID':
+			case 'EARNED': {
+				alert_icon = 'payment';
+				break;
+			}
+			default: {
+				alert_icon = 'info';
+				break;
+			}
+		}
+		this.alerter.throwInfo(info.object, alert_icon);
 	}
 
 	public handleGameUpdate(event: GameResponse): void {
@@ -194,7 +210,10 @@ export class GameUpdater implements GameHandler {
 				const decision = this.playerHandle.returnDecisionTree(event);
 				//does decision contain 'roll'?
 				if (decision.includes('roll')) {
-					this.alerter.throwInfo('Your turn!');
+					this.alerter.throwInfo('Your turn!', 'dice');
+				}
+				if (message.message === 'SENT_TO_JAIL') {
+					this.alerter.throwInfo('You have been sent to jail!', 'alert');
 				}
 				this.icclayer.askPlayer([...decision]);
 			}

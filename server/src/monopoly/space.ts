@@ -116,12 +116,13 @@ export class Utility extends Property {
 
 export class Tax extends Space {
 
-	constructor(public readonly id: number, public readonly name: string, public readonly amount: number) {
+	constructor(public readonly id: number, public readonly name: string, public readonly price: number) {
 		super(id, name, 5);
 	}
 
 	onLand(player: Player): LandInformation {
 		//TODO: implement
+		this.useCommunicationLayer().collect(player, this.price);
 		return { space: this, engine_should_wait: false } as LandInformation;
 	}
 
@@ -158,9 +159,6 @@ export class Go extends Space {
 	}
 
 	onLand(player: Player): LandInformation {
-
-		player.giveMoney(400);
-		player.notify({ type: NotificationType.INFO, message: 'PLAYER_UPDATED' });
 
 		return { space: this, engine_should_wait: false } as LandInformation;
 	}

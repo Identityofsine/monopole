@@ -71,7 +71,7 @@ export function castSpace(square_preobject: Space, buildingCommunicationLayer?: 
 		}
 		case 5: {
 			const tax = square_preobject as Tax;
-			return new Tax(tax.id, tax.name, tax.amount);
+			return new Tax(tax.id, tax.name, tax.price);
 		}
 		case 6: {
 			const railroad = square_preobject as Railroad;

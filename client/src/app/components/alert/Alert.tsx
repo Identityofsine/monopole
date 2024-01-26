@@ -1,6 +1,7 @@
 // Author : Kevin Erdogan
 import '../../styles/alertbox.scss';
 import { useEffect, useRef, useState } from "react";
+import Icon, { IconProps } from '../icon/Icon';
 
 
 export type AlertObject = {
@@ -9,9 +10,32 @@ export type AlertObject = {
 }
 
 export type AlertType = "ERROR" | "WARNING" | "INFO" | "SUCCESS";
-export type AlertIcon = "dice" | "alert"
+export type AlertIcon = "dice" | "alert" | "house" | "info" | "payment"
 
 export type AlertFunction = (alert: string, alert_type?: AlertType, icon_type?: AlertIcon) => void;
+
+function mapAlertIcon(alert_icon?: AlertIcon): IconProps['icon'] {
+	switch (alert_icon) {
+		case "alert": {
+			return "alert.svg";
+		}
+		case "dice": {
+			return "dice.png";
+		}
+		case "house": {
+			return "house.png";
+		}
+		case "info": {
+			return "info.svg";
+		}
+		case "payment": {
+			return "payment.svg";
+		}
+		default: {
+			return "alert.svg";
+		}
+	}
+}
 
 function Alert(display_time: number = 4500): AlertObject {
 
@@ -26,14 +50,17 @@ function Alert(display_time: number = 4500): AlertObject {
 	const [display, setDisplay] = useState<boolean>(false);
 
 	function _throw(alert: string, alert_type: AlertType = "INFO", icon_type?: AlertIcon) {
+		console.log(icon_type);
 		m_pushAlert({ alert: alert, alert_type: alert_type, icon: icon_type });
 	}
 
 	function l_onDisplayEnd() {
 		const alert = m_popAlert();
+		console.log("alert:", alert);
 		if (alert) {
 			setAlertQueueState(alert);
-			setDisplay(true);
+			if (!display)
+				setDisplay(true);
 		}
 		else {
 			if (alert_queue_state.alert !== '') {
@@ -64,31 +91,37 @@ function Alert(display_time: number = 4500): AlertObject {
 		const timeout_ref = useRef<NodeJS.Timeout | undefined>();
 
 		useEffect(() => {
-			console.log("render occurred");
 			const is_empty = alert_queue_state.alert === '';
-			if (is_empty) {
-				setLDisplay(false);
-				return;
-			}
-			setLDisplay(true);
+			if (!is_empty)
+				setLDisplay(true);
 
 			return () => {
 				if (alert_queue_state.alert === '') return;
+				cancel();
 			}
 		}, [alert_queue_state])
 
 
 		useEffect(() => {
-			if (l_display)
+			if (l_display) {
 				wait();
+			}
+			else {
+			}
 		}, [l_display]);
 
 		function wait() {
 			if (l_display) {
-				setTimeout(() => {
+				timeout_ref.current = setTimeout(() => {
 					setLDisplay(false);
 				}, display_time - 1500);
 			} else {
+				l_onDisplayEnd();
+			}
+		}
+
+		function next() {
+			if (!l_display) {
 				l_onDisplayEnd();
 			}
 		}
@@ -98,18 +131,17 @@ function Alert(display_time: number = 4500): AlertObject {
 				clearTimeout(timeout_ref.current);
 				timeout_ref.current = undefined;
 			}
-			l_onDisplayEnd();
 		}
 
 		return (
 			<div className="fixed alert-box-container">
 				<div
 					className={`flex content-container absolute center-absolute-x alert-box ${l_display ? 'show' : 'hide'}`}
-					onTransitionEnd={() => { }}
+					onTransitionEnd={() => { next() }}
 					onClick={() => { cancel(); setLDisplay(false); }}
 				>
 					<div className="flex align-center fit-height gap-01">
-						<img src="/icon/dice.png" alt="warning" className="alert-icon" />
+						<Icon icon={mapAlertIcon(alert_queue_state.icon)} className="alert-icon" alt="icon" />
 						<p className="center-text message">{alert_queue_state.alert}</p>
 					</div>
 				</div>
