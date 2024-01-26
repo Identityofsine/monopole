@@ -1,4 +1,4 @@
-import { AlertFunction, AlertType } from "@/app/components/alert/Alert";
+import { AlertFunction, AlertIcon, AlertType } from "@/app/components/alert/Alert";
 import { GameID, ICClient, PlayerHoldableSpace } from "@/app/pages/HomePage";
 import { send } from "process";
 import { Dispatch, SetStateAction } from "react";
@@ -393,16 +393,16 @@ class AlertSystem {
 	public constructor(private m_gcl: GameUpdaterCommunicationLayer) {
 	}
 
-	public throwInfo(message: string) {
-		this.m_gcl.alert(message, "INFO");
+	public throwInfo(message: string, icon_type?: AlertIcon) {
+		this.m_gcl.alert(message, "INFO", icon_type);
 	}
 
 	public throwWarning(message: ErrorResponse) {
-		this.m_gcl.alert(message.message, "WARNING");
+		this.m_gcl.alert(message.message, "WARNING", "alert");
 	}
 
 	public throwError(message: ErrorResponse) {
 		console.log(message);
-		this.m_gcl.alert(message.message, "ERROR");
+		this.m_gcl.alert(message.message, "ERROR", "alert");
 	}
 }

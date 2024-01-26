@@ -9,9 +9,9 @@ export type AlertObject = {
 }
 
 export type AlertType = "ERROR" | "WARNING" | "INFO" | "SUCCESS";
-export type AlertIcon = "dice"
+export type AlertIcon = "dice" | "alert"
 
-export type AlertFunction = (alert: string, alert_type?: AlertType, /* icon_type: IconType */) => void;
+export type AlertFunction = (alert: string, alert_type?: AlertType, icon_type?: AlertIcon) => void;
 
 function Alert(display_time: number = 4500): AlertObject {
 
@@ -25,8 +25,8 @@ function Alert(display_time: number = 4500): AlertObject {
 	const [alert_queue_state, setAlertQueueState] = useState<AlertQueue>({ alert: '', alert_type: 'INFO' });
 	const [display, setDisplay] = useState<boolean>(false);
 
-	function _throw(alert: string, alert_type: AlertType = "INFO") {
-		m_pushAlert({ alert: alert, alert_type: alert_type });
+	function _throw(alert: string, alert_type: AlertType = "INFO", icon_type?: AlertIcon) {
+		m_pushAlert({ alert: alert, alert_type: alert_type, icon: icon_type });
 	}
 
 	function l_onDisplayEnd() {
