@@ -36,8 +36,10 @@ function Alert(display_time: number = 4500): AlertObject {
 			setDisplay(true);
 		}
 		else {
-			setAlertQueueState({ alert: '', alert_type: 'INFO' });
-			setDisplay(false);
+			if (alert_queue_state.alert !== '') {
+				setAlertQueueState({ alert: '', alert_type: 'INFO' });
+				setDisplay(false);
+			}
 		}
 	}
 
@@ -62,10 +64,23 @@ function Alert(display_time: number = 4500): AlertObject {
 		const timeout_ref = useRef<NodeJS.Timeout | undefined>();
 
 		useEffect(() => {
-			setLDisplay(display);
-		}, [display])
+			console.log("render occurred");
+			const is_empty = alert_queue_state.alert === '';
+			if (is_empty) {
+				setLDisplay(false);
+				return;
+			}
+			setLDisplay(true);
+
+			return () => {
+				if (alert_queue_state.alert === '') return;
+			}
+		}, [alert_queue_state])
+
 
 		useEffect(() => {
+			if (l_display)
+				wait();
 		}, [l_display]);
 
 		function wait() {
@@ -83,13 +98,15 @@ function Alert(display_time: number = 4500): AlertObject {
 				clearTimeout(timeout_ref.current);
 				timeout_ref.current = undefined;
 			}
+			l_onDisplayEnd();
 		}
 
 		return (
 			<div className="fixed alert-box-container">
 				<div
 					className={`flex content-container absolute center-absolute-x alert-box ${l_display ? 'show' : 'hide'}`}
-					onTransitionEnd={() => { wait(); }}
+					onTransitionEnd={() => { }}
+					onClick={() => { cancel(); setLDisplay(false); }}
 				>
 					<div className="flex align-center fit-height gap-01">
 						<img src="/icon/dice.png" alt="warning" className="alert-icon" />

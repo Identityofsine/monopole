@@ -19,6 +19,7 @@
 	min-height: 1rem;
 	max-height: 4.5rem;
 	top: -20%;
+	pointer-events: all;
 
 	&.show {
 		top: 2.5%;

@@ -72,7 +72,7 @@ function RowOrganizer(props: RowOrganizerProps) {
 			let space_prop: SpaceProps = {
 				name: space.name,
 				price: space?.price ?? 0,
-				color: space?.color,
+				color: space?.color ?? { name: 'white', hex: '#ffffff' },
 				players: space.players,
 				owner: space?._owner
 			}
@@ -107,7 +107,7 @@ function RowOrganizer(props: RowOrganizerProps) {
 				</div>
 				<Row type='column' elements={ReactGenerateMultiple<SpaceProps>(Space, spaces.right, spaces.right.length)} height={props.row_height} />
 			</div>
-			<Row type='row' elements={ReactGenerateMultiple<SpaceProps>(Space, spaces.bottom, spaces.bottom.length)} height={props.row_height} />
+			<Row type='row-reverse' elements={ReactGenerateMultiple<SpaceProps>(Space, spaces.bottom, spaces.bottom.length)} height={props.row_height} />
 		</div>
 	)
 }
