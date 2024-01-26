@@ -28,6 +28,7 @@ export type GameID = {
 export interface ICClient extends ConnectionInterface {
 	askPlayer(tree: DecisionType[]): void;
 	getID(): GameID;
+	getPlayer(id: UUID.UUID): Player | undefined;
 	alert: AlertFunction;
 }
 
@@ -82,9 +83,13 @@ function HomePage() {
 			askPlayer: (tree: DecisionType[]) => {
 				setDecisions(tree);
 			},
+			getPlayer: getPlayer,
 			alert: alert.throwFunction.bind(alert)
 		}, { getState: (() => { return gamestate_ref.current; }).bind(gamestate_ref), setState: setGamestate }, { getState: () => spaces, setState: setSpaces }, { getState: () => players, setState: setPlayers })
+	}
 
+	function getPlayer(id: UUID.UUID): Player | undefined {
+		return players?.find((player) => player.uuid === id);
 	}
 
 	useEffect(() => {
@@ -150,6 +155,9 @@ function HomePage() {
 			}
 			<alert.element key="alert" />
 			<div className={styles.center}>
+				{gamestate !== 'INACTIVE' &&
+					<span>Money:{getPlayer(uuid.current.player_uuid)?.money}</span>
+				}
 				<Board spaces={spaces} decisions={decisions} iface={game_updater.current as ISource} />
 			</div>
 

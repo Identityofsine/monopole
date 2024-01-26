@@ -1,7 +1,6 @@
 import { PlayerHoldableSpace } from "@/app/pages/HomePage";
 import RowOrganizer from "./RowOrganizer";
 import { BoardProps } from "./types";
-import { Play } from "next/font/google";
 
 function Board({ decisions, iface, spaces }: BoardProps) {
 
