@@ -1,6 +1,6 @@
 import { MonopolyEngine, PlayerCommunicationLayer } from "../monopoly/monopoly";
 import { MonopolyError } from "../monopoly/monopoly.error";
-import { DecisionType, UUID, Filter, NotificationEvent } from "shared-types";
+import { DecisionType, UUID, Filter, NotificationEvent, ExpectedInput, ExpectedMessages, ExpectedAlertMessages } from "shared-types";
 import { Player } from "../monopoly/player";
 import ServerInstance from "./websocket";
 import * as WebSocket from 'ws';
@@ -15,11 +15,11 @@ interface MonopolyGame {
 
 
 namespace MessageFactory {
-	export function createMessage(message: string): BaseResponse {
+	export function createMessage(message: string, type: ExpectedAlertMessages = 'GENERAL_MESSAGE'): BaseResponse {
 		return {
 			success: true,
 			response: 'message',
-			message: message,
+			message: { message: type, object: message },
 		}
 	}
 	export function createRespond(message: string, decision: DecisionType | DecisionType[]): GameResponse {
@@ -57,6 +57,14 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 	public constructor() {
 		console.log('[monopolyserver] created');
 		this.m_setup();
+	}
+
+	private m_doesDecisionNeedInput(decision: DecisionType): boolean {
+		return decision === 'buy' || decision === 'pay' || decision === 'roll' || decision === 'trade';
+	}
+
+	private m_isProperEInput(value: ExpectedInput): boolean {
+		return (value.data !== undefined && value.decision !== undefined);
 	}
 
 	private m_sendError(ws: WebSocket, message: string, disconnect: boolean = false): void {
@@ -131,26 +139,38 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 			const communicationlayer = engine.engine.Monopoly.m_PCLFactory(player);
 
 			const action = data.decision;
-			if (action === 'roll') {
-				if (engine.engine.Monopoly.didRoll) {
-					this.m_sendError(ws, 'You are waiting for a decision, please wait', false);
-					return;
+			switch (action) {
+				case 'roll': {
+					if (engine.engine.Monopoly.didRoll) {
+						this.m_sendError(ws, 'You are waiting for a decision, please wait', false);
+						return;
+					}
+					this.m_handleRolls(data, ws, communicationlayer);
+					break;
 				}
-				this.m_handleRolls(data, ws, communicationlayer);
-			} else if (action == 'ignore') {
-				communicationlayer.ignore();
-			} else if (action == 'buy') {
-				let space = communicationlayer.buyProperty();
-				if (space) {
-					ws.send(JSON.stringify(MessageFactory.createMessage('You bought property')));
-					this.m_sendBuildingUpdate(engine, space);
-				} else {
-					ws.send(JSON.stringify(MessageFactory.createMessage('Unable to buy property')));
+				case 'trade': {
+					this.m_sendError(ws, 'Not implemented yet', false);
+					communicationlayer.ignore();
+					break;
 				}
-				communicationlayer.ignore();
+				case 'buy': {
+					let space = communicationlayer.buyProperty();
+					if (space) {
+						ws.send(JSON.stringify(MessageFactory.createMessage('You bought property', 'BUILDING_BOUGHT')));
+						this.m_sendBuildingUpdate(engine, space);
+					} else {
+						this.m_sendError(ws, 'You cannot buy this property', false);
+					}
+				}
+				case 'ignore': {
+				}
+				default: {
+					communicationlayer.ignore();
+					break;
+				}
 			}
-			this.m_sendPlayerUpdate(engine, player);
 
+			this.m_sendPlayerUpdate(engine, player);
 			console.log('[monopolyserver] received response: ', data);
 		}
 		catch (e) {

@@ -9,14 +9,16 @@ export type AlertObject = {
 }
 
 export type AlertType = "ERROR" | "WARNING" | "INFO" | "SUCCESS";
+export type AlertIcon = "dice"
 
-export type AlertFunction = (alert: string, alert_type?: AlertType) => void;
+export type AlertFunction = (alert: string, alert_type?: AlertType, /* icon_type: IconType */) => void;
 
 function Alert(display_time: number = 4500): AlertObject {
 
 	type AlertQueue = {
 		alert: string,
 		alert_type: AlertType
+		icon?: AlertIcon;
 	};
 	const ref = useRef<AlertObject>();
 	const alert_queue = useRef<AlertQueue[]>([]);
@@ -89,8 +91,8 @@ function Alert(display_time: number = 4500): AlertObject {
 					className={`flex content-container absolute center-absolute-x alert-box ${l_display ? 'show' : 'hide'}`}
 					onTransitionEnd={() => { wait(); }}
 				>
-					<div className="flex align-bottom fit-height gap-01">
-						<img src="/icon/warning-skuo.svg" alt="warning" className="alert-icon" />
+					<div className="flex align-center fit-height gap-01">
+						<img src="/icon/dice.png" alt="warning" className="alert-icon" />
 						<p className="center-text message">{alert_queue_state.alert}</p>
 					</div>
 				</div>

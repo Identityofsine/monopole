@@ -59,7 +59,31 @@ export type Filter<A extends Record<string, any>, B extends keyof A> = {
 	[K in Exclude<keyof A, B>]: A[K]
 }
 
+//decisions
 export type DecisionType = 'roll' | 'trade' | 'buy' | 'sell' | 'mortgage' | 'unmortgage' | 'build' | 'demolish' | 'ignore' | 'pay' | MonopolyEngineCommands;
+export type RequiredInputDecision = 'trade' | 'mortgage' | 'unmortgage' | 'build' | 'demolish';
+//expected input for certian decisions
+export type ExpectedInput = {
+	decision: RequiredInputDecision;
+	data: object
+}
+
+export type ExpectedTradeInput = {
+	data: {
+		source: UUID;
+		dest: UUID;
+		offer: Trade;
+	}
+} & ExpectedInput;
+
+export type ExpectedBuildInput = {
+	data: {
+		space: UUID;
+		buildings: number;
+	}[]
+}
+
+
 
 export type NotificationEvent = {
 	type: NotificationType;

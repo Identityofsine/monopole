@@ -14,33 +14,34 @@
 	backdrop-filter: blur(4px);
 	border: 1px solid rgba(var(--callout-border-rgb), .4);
 	border-radius: var(--border-radius);
-	min-width: 3rem;
-	max-width: 6rem;
+	min-width: 4.25rem;
+	max-width: 8rem;
 	min-height: 1rem;
 	max-height: 4.5rem;
-	top: 2.5%;
+	top: -20%;
 
 	&.show {
 		top: 2.5%;
 	}
 
 	.alert-icon {
-		width: 1rem;
+		width: 1.18rem;
 		height: auto;
 	}
 
 
 	&.content-container {
-		padding: .25rem .25rem;
+		padding: .15rem .15rem;
 	}
 
 	.gap-01 {
-		gap: .15rem;
+		gap: .10rem;
 	}
 
 	.message {
-		font-size: .45rem;
-		font-weight: 500;
+		font-size: .40rem;
+		opacity: .94;
+		font-weight: 400;
 		margin: 0;
 		padding: 0;
 	}

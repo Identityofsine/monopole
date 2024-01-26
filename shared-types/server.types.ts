@@ -1,4 +1,4 @@
-import { DecisionType, MonopolyEngineCommands } from "./monopoly.types";
+import { DecisionType, ExpectedInput, MonopolyEngineCommands } from "./monopoly.types";
 
 export type Intents = 'create' | 'join' | 'response' | 'command'
 export type PlayerState = 'jail' | 'turn' | 'bankrupt' | 'idle' | 'paying'
@@ -32,13 +32,15 @@ export type Responses = 'connect' | 'join' | 'respond' | 'message' | 'id' | 'upd
 
 
 //Expected Messages expected from the client
-export type ExpectedMessages = "HOST_OPTIONS" | "PLAYER_JOINED" | "STATUS_UPDATE" | "PLAYER_UPDATED" | "GAME_UPDATE" | "ROLL_UPDATE" | "TURN_UPDATE" | "JAIL_UPDATE" | "MONEY_UPDATE" | "JUST_JOINED" | "BUILDING_UPDATE"
+export type ExpectedMessages = "HOST_OPTIONS" | "PLAYER_JOINED" | "STATUS_UPDATE" | "PLAYER_UPDATED" | "GAME_UPDATE" | "ROLL_UPDATE" | "TURN_UPDATE" | "JAIL_UPDATE" | "MONEY_UPDATE" | "JUST_JOINED" | "BUILDING_UPDATE" | ExpectedAlertMessages;
+
+export type ExpectedAlertMessages = "GENERAL_MESSAGE" | "BUILDING_BOUGHT" | "TRADE_SENT" | "TRADE_ACCEPT"
 
 
 //BaseResponse is the response that the server sends to the client, all responses that the server may send inherit from this
 export type BaseResponse = {
 	response: Responses;
-	message?: string | { object: object, message: ExpectedMessages };
+	message?: string | { object: any, message: ExpectedMessages };
 	success: boolean
 }
 
@@ -56,6 +58,9 @@ export type ErrorResponse = {
  */
 export type Recipient = 'global' | 'game' | 'player'
 
+export type DecisionKeyValue = DecisionType | DecisionType[] | ExpectedInput | ExpectedInput[]
+
+
 
 /**
  * @summary {GameResponse is a type that the server sends to the client for game updates and decisions.}
@@ -64,9 +69,9 @@ export type Recipient = 'global' | 'game' | 'player'
  * @param {decision} {The decision that the player must make, if the response is 'respond'}
  */
 export type GameResponse = {
-	response: 'message' | 'respond' | 'update';
+	response: 'message' | 'respond' | 'update' | 'error';
 	recipient: Recipient;
-	decision?: DecisionType | DecisionType[];
+	decision?: DecisionKeyValue;
 } & BaseResponse
 
 

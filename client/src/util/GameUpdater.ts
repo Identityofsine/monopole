@@ -162,6 +162,19 @@ export class GameUpdater implements GameHandler {
 			const game_event = message as GameResponse;
 			this.handleGameUpdate(game_event);
 		}
+		if (this.isInfoUpdate(message)) {
+
+		}
+	}
+
+	public isInfoUpdate(message: BaseResponse) {
+		return message.response === 'message';
+	}
+
+	public handleInfoUpdate(message: BaseResponse) {
+		if (typeof message.message === 'string') return;
+		const info = message.message as { message: string, object: any };
+		this.alerter.throwInfo(info.message);
 	}
 
 	public handleGameUpdate(event: GameResponse): void {
@@ -173,6 +186,9 @@ export class GameUpdater implements GameHandler {
 				this.playerHandle.updatePlayer(message.object as Player);
 			} else if (message.message === "BUILDING_UPDATE") {
 				this.spaceHandle.updateSingleSpace(message.object as Space);
+			}
+			if (event.response === 'error') {
+				this.alerter.throwError(event as ErrorResponse);
 			}
 			if (event.response === 'respond') {
 				const decision = this.playerHandle.returnDecisionTree(event);
@@ -386,6 +402,7 @@ class AlertSystem {
 	}
 
 	public throwError(message: ErrorResponse) {
+		console.log(message);
 		this.m_gcl.alert(message.message, "ERROR");
 	}
 }
