@@ -18,7 +18,7 @@ namespace MessageFactory {
 	export function createMessage(message: string, type: ExpectedAlertMessages = 'GENERAL_MESSAGE'): BaseResponse {
 		return {
 			success: true,
-			response: 'message',
+			response: 'info',
 			message: { message: type, object: message },
 		}
 	}

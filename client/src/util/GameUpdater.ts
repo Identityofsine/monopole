@@ -163,19 +163,19 @@ export class GameUpdater implements GameHandler {
 			this.handleGameUpdate(game_event);
 		}
 		if (this.isInfoUpdate(message)) {
-
+			this.handleInfoUpdate(message);
 		}
 	}
 
 	public isInfoUpdate(message: BaseResponse) {
-		return message.response === 'message';
+		return message.response === 'info';
 	}
 
 	public handleInfoUpdate(message: BaseResponse) {
 		if (typeof message.message === 'string') return;
-		const info = message.message as { message: string, object: any };
-		console.log(info);
-		this.alerter.throwInfo(info.message);
+		const info = message.message as { message: ExpectedMessages, object: string };
+		console.log("INFO:", info);
+		this.alerter.throwInfo(info.object);
 	}
 
 	public handleGameUpdate(event: GameResponse): void {

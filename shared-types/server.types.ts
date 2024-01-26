@@ -28,7 +28,7 @@ export type ResponseIntent = {
 } & BaseIntent
 
 /* Server Sending Message */
-export type Responses = 'connect' | 'join' | 'respond' | 'message' | 'id' | 'update' | 'error'
+export type Responses = 'connect' | 'join' | 'respond' | 'message' | 'id' | 'update' | 'error' | 'info'
 
 
 //Expected Messages expected from the client
