@@ -174,6 +174,7 @@ export class GameUpdater implements GameHandler {
 	public handleInfoUpdate(message: BaseResponse) {
 		if (typeof message.message === 'string') return;
 		const info = message.message as { message: string, object: any };
+		console.log(info);
 		this.alerter.throwInfo(info.message);
 	}
 
