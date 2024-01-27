@@ -64,6 +64,10 @@ function HomePage() {
 
 	const game_updater = useRef<GameUpdater>();
 
+	function copyToClipboard(value: string) {
+		navigator.clipboard.writeText(value);
+	}
+
 	function joinGame(uuid?: UUID.UUID) {
 		connection?.connect(name, uuid);
 		setGamestate("WAITING");
@@ -156,7 +160,15 @@ function HomePage() {
 			<alert.element key="alert" />
 			<div className={styles.center}>
 				{gamestate !== 'INACTIVE' &&
-					<span>Money:{getPlayer(uuid.current.player_uuid)?.money}</span>
+					<div className="flex space-between fill-container align-bottom">
+						<span>Money:{getPlayer(uuid.current.player_uuid)?.money}</span>
+						<span
+							style={{ fontSize: '.2rem' }}
+							onClick={() => copyToClipboard(uuid.current.game_uuid)}
+						>
+							Copy Game ID
+						</span>
+					</div>
 				}
 				<Board spaces={spaces} decisions={decisions} iface={game_updater.current as ISource} />
 			</div>
