@@ -1,3 +1,4 @@
+import { RequiredInputDecision } from "./server.input.types";
 import { ExpectedMessages } from "./server.types";
 
 declare type UUID = string;
@@ -29,13 +30,6 @@ export type Space = Identifiable & {
 }
 
 
-export type Trade = {
-	source: Player;
-	offer: {
-		money: number;
-		properties: Space[];
-	};
-};
 
 export type WaitObject = {
 	waiting: boolean;
@@ -60,30 +54,7 @@ export type Filter<A extends Record<string, any>, B extends keyof A> = {
 }
 
 //decisions
-export type DecisionType = 'roll' | 'trade' | 'buy' | 'sell' | 'mortgage' | 'unmortgage' | 'build' | 'demolish' | 'ignore' | 'pay' | MonopolyEngineCommands;
-export type RequiredInputDecision = 'trade' | 'mortgage' | 'unmortgage' | 'build' | 'demolish';
-//expected input for certian decisions
-export type ExpectedInput = {
-	decision: RequiredInputDecision;
-	data: object
-}
-
-export type ExpectedTradeInput = {
-	data: {
-		source: UUID;
-		dest: UUID;
-		offer: Trade;
-	}
-} & ExpectedInput;
-
-export type ExpectedBuildInput = {
-	data: {
-		space: UUID;
-		buildings: number;
-	}[]
-}
-
-
+export type DecisionType = 'roll' | 'buy' | 'sell' | 'demolish' | 'ignore' | 'pay' | MonopolyEngineCommands | RequiredInputDecision;
 
 export type NotificationEvent = {
 	type: NotificationType;

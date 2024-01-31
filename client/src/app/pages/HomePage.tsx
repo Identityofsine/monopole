@@ -13,6 +13,8 @@ import UsePopUp from '@/hooks/UsePopUp';
 import Board from '../components/board/Board';
 import { ConnectionInterface } from '@/obj/connection';
 import Alert, { AlertFunction, AlertIcon } from '../components/alert/Alert';
+import PopUpInput from '../components/popup/PopUpInput';
+import { ExpectedInput } from 'shared-types/server.input.types';
 
 
 export type PlayerHoldableSpace = Space & {
@@ -128,6 +130,7 @@ function HomePage() {
 	return (
 		<main className={styles.container} >
 
+			<PopUpInput input_style="trade" onInputCompiled={(input: ExpectedInput) => { return; }} />
 			<div className={styles.description}>
 				<p>
 					<ReactJson src={text} theme="monokai" collapsed={true} />
