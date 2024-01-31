@@ -56,7 +56,6 @@ function Alert(display_time: number = 4500): AlertObject {
 
 	function l_onDisplayEnd() {
 		const alert = m_popAlert();
-		console.log("alert:", alert);
 		if (alert) {
 			setAlertQueueState(alert);
 			if (!display)

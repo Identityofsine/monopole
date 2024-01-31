@@ -29,7 +29,7 @@ export type RowOrganizerProps = {
 	spaces: PlayerHoldableSpace[];
 	rows: number;
 	row_height: number;
-	children?: React.ReactNode;
+	children?: React.ReactNode | React.ReactNode[];
 };
 
 type SpaceOrganizer<T extends object> = {
