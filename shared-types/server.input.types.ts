@@ -49,7 +49,11 @@ export type InputObject = {
 }
 export const ExpectedInputObject: InputObject = {
 	'decision': 'string',
-	'data': 'object'
+	'data': {
+		'sex': 'string',
+		'age': 'number',
+		'location': { 'lat': 'number', 'long': 'number' }
+	}
 }
 
 
