@@ -8,6 +8,7 @@
  * Updated : 01/31/2024 01:28 
  */
 import { DispatchWithResult } from "@/util/GameUpdater";
+import { useEffect, useRef, useState } from "react";
 import { ExpectedInput, ExpectedInputObject, ExpectedTradeInputObject, InputObject, RequiredInputDecision, isRequiredInputDecision } from "shared-types/server.input.types"
 
 
@@ -70,7 +71,7 @@ function convert(input: RequiredInputDecision) {
 	return helper(matchInputType(input)); //return result of helper function
 }
 
-function parse(input: InputField): JSX.Element {
+function parse(input: InputField, pushState: (state: PopupInputStateStorage) => void): JSX.Element {
 
 	function extract_keywords(word: string): [string, string[]] {
 		let lone_word = '';
@@ -98,9 +99,23 @@ function parse(input: InputField): JSX.Element {
 		return [lone_word, args];
 	}
 
-	console.log(extract_keywords(input.type));
+	const keyword = extract_keywords(input.type);
 
-	return (<></>)
+	switch (keyword[0]) {
+		case 'string': {
+			const [s_input, setInputState] = useState('');
+			pushState({ [input.label]: s_input });
+			return (<input type='text' placeholder={input.label} value={s_input} onChange={(e) => { setInputState(e.target.value) }} />)
+		}
+		case 'number': {
+			const [n_input, setInputState] = useState(0);
+			pushState({ [input.label]: n_input });
+			return (<input type='number' placeholder={input.label} value={n_input} onChange={(e) => { setInputState(parseInt(e.target.value)) }} />)
+		}
+		default: {
+			return (<></>)
+		}
+	}
 }
 
 type PopUpInputProps = {
@@ -108,21 +123,51 @@ type PopUpInputProps = {
 	onInputCompiled: DispatchWithResult<ExpectedInput, void>;
 }
 
+type PopupInputStateStorage = {
+	[key: string]: string | number | boolean;
+}
+
 export default function PopUpInput({ input_style, onInputCompiled }: PopUpInputProps) {
+
+	const input_ref = useRef<InputField[]>(convert(input_style));
+	const states = useRef<PopupInputStateStorage[]>([]);
 
 	if (!isRequiredInputDecision(input_style)) {
 		return (<></>)
 	}
 
 	function compile_data() {
+		states.current.forEach((state) => {
+			console.log(state);
+		});
 		return;
 	}
 
+	function pushState(state: PopupInputStateStorage) {
+		if (states.current.length === 0) {
+			states.current.push(state);
+			return;
+		}
+		let idx = states.current.findIndex((s: PopupInputStateStorage) => {
+			const keys = Object.keys(s);
+			const state_keys = Object.keys(state);
+			return keys.every((key) => {
+				return state_keys.includes(key);
+			});
+		})
+		if (idx !== -1) {
+			states.current[idx] = state;
+			return;
+		}
+		states.current.push(state);
+	}
 
-	const input_form_data = (convert(input_style))
-	input_form_data.forEach((input) => {
-		parse(input);
-	});
-
-	return (<></>)
+	return (
+		<div className="flex column">
+			{input_ref.current.map((input, index) => {
+				return parse(input, pushState)
+			})}
+			<button onClick={() => { compile_data() }}>Submit</button>
+		</div>
+	)
 }
