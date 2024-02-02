@@ -55,13 +55,13 @@ export const ExpectedInputObject: InputObject = {
 export const ExpectedTradeInputObject: InputObject = {
 	'decision': 'string',
 	'data': {
-		'source': '&dropdown[player]',
+		'source': 'dropdown[player]',
 		'dest': 'dropdown[player]',
 		'offer': {
-			'source': '&dropdown[player]',
+			'source': 'dropdown[player]',
 			'offer': {
 				'money': 'number',
-				'properties': 'array[number]'
+				'properties': 'array[number][2]'
 			}
 		}
 	}

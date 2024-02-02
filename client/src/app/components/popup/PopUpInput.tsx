@@ -112,6 +112,17 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 			pushState({ [input.label]: n_input });
 			return (<input type='number' placeholder={input.label} value={n_input} onChange={(e) => { setInputState(parseInt(e.target.value)) }} />)
 		}
+		case 'dropdown': {
+			const [d_input, setInputState] = useState('');
+			pushState({ [input.label]: d_input });
+			return (<select value={d_input} onChange={(e) => { setInputState(e.target.value) }}>
+				<option value='' disabled>Select an option</option>
+				{keyword[1].map((option) => {
+					return (<option value={option}>{option}</option>)
+				})}
+			</select>
+			)
+		}
 		default: {
 			return (<></>)
 		}
