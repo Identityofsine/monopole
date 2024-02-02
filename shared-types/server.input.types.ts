@@ -49,10 +49,21 @@ export type InputObject = {
 }
 export const ExpectedInputObject: InputObject = {
 	'decision': 'string',
+	'data': {}
+}
+
+export const ExpectedTradeInputObject: InputObject = {
+	'decision': 'string',
 	'data': {
-		'sex': 'string',
-		'age': 'number',
-		'location': { 'lat': 'number', 'long': 'number' }
+		'source': '&dropdown[player]',
+		'dest': 'dropdown[player]',
+		'offer': {
+			'source': '&dropdown[player]',
+			'offer': {
+				'money': 'number',
+				'properties': 'array[number]'
+			}
+		}
 	}
 }
 

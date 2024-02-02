@@ -8,12 +8,12 @@
  * Updated : 01/31/2024 01:28 
  */
 import { DispatchWithResult } from "@/util/GameUpdater";
-import { ExpectedInput, ExpectedInputObject, RequiredInputDecision, isRequiredInputDecision } from "shared-types/server.input.types"
+import { ExpectedInput, ExpectedInputObject, ExpectedTradeInputObject, InputObject, RequiredInputDecision, isRequiredInputDecision } from "shared-types/server.input.types"
 
 
 //typescript function thats going to go crazy...
 type InputField = {
-	type: 'toggle' | 'text' | 'number' | 'dropdown'
+	type: string;
 	label: string;
 }
 
@@ -39,6 +39,17 @@ function unnest<T>(arr: T[]): T[] {
 	return return_arr;
 }
 
+function matchInputType(type: RequiredInputDecision): InputObject {
+	switch (type) {
+		case 'trade': {
+			return ExpectedTradeInputObject;
+		}
+		default: {
+			return ExpectedInputObject;
+		}
+	}
+}
+
 function convert(input: RequiredInputDecision) {
 
 	//recursive function to flatten object
@@ -56,7 +67,40 @@ function convert(input: RequiredInputDecision) {
 		return unnest(return_value); //flatten array
 	}
 
-	return helper(ExpectedInputObject); //return result of helper function
+	return helper(matchInputType(input)); //return result of helper function
+}
+
+function parse(input: InputField): JSX.Element {
+
+	function extract_keywords(word: string): [string, string[]] {
+		let lone_word = '';
+		let args = [];
+		let current_arg = '';
+		let stack = [];
+		for (let i = 0; i < word.length; i++) {
+			const char = word[i];
+			if (stack.length === 0) {
+				if (char === '[') {
+					stack.push('[');
+					continue;
+				}
+				lone_word += char;
+			} else {
+				if (char === ']') {
+					stack.pop();
+					args.push(current_arg);
+					current_arg = '';
+					continue;
+				}
+				current_arg += char;
+			}
+		}
+		return [lone_word, args];
+	}
+
+	console.log(extract_keywords(input.type));
+
+	return (<></>)
 }
 
 type PopUpInputProps = {
@@ -75,8 +119,10 @@ export default function PopUpInput({ input_style, onInputCompiled }: PopUpInputP
 	}
 
 
-	console.log(convert(input_style))
-
+	const input_form_data = (convert(input_style))
+	input_form_data.forEach((input) => {
+		parse(input);
+	});
 
 	return (<></>)
 }
