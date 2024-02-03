@@ -8,7 +8,7 @@
  * Updated : 01/31/2024 01:28 
  */
 import { DispatchWithResult } from "@/util/GameUpdater";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { ExpectedInput, ExpectedInputObject, ExpectedTradeInputObject, InputObject, RequiredInputDecision, isRequiredInputDecision } from "shared-types/server.input.types"
 
 
@@ -58,7 +58,7 @@ function convert(input: RequiredInputDecision) {
 		const return_value = Object.keys(object).map(key => { //iterate through object, and map to array
 			const value_obj = object[key as keyof typeof ExpectedInputObject];
 			if (typeof value_obj === 'object') {
-				return helper(value_obj); //if value is an object, recursively call helper
+				return { label: key, type: helper(value_obj) }; //if value is an object, recursively call helper
 			}
 			return {
 				'label': key as string,
@@ -71,13 +71,42 @@ function convert(input: RequiredInputDecision) {
 	return helper(matchInputType(input)); //return result of helper function
 }
 
+type ParseKeywordObject = {
+	category: string;
+	value: ParseKeywordReturn;
+}
+type ParseKeywordReturn = { label: string, parsed: [string, string[]][] };
+
+function condense_jsx_array(arr: JSX.Element[]): JSX.Element {
+	if (arr.length === 0) return <></>;
+	if (arr.length === 1) return arr[0];
+	return (
+		<>
+			{arr}
+		</>
+	)
+}
+
 function parse(input: InputField, pushState: (state: PopupInputStateStorage) => void): JSX.Element {
 
-	function extract_keywords(word: string): [string, string[]] {
+	function extract_keywords(word: string, category?: string): ParseKeywordObject | ParseKeywordObject[] {
 		let lone_word = '';
-		let args = [];
+		let args: string[] = [];
 		let current_arg = '';
 		let stack = [];
+		if (!word) return { category: '', value: { label: '', parsed: [[lone_word, args]] } };
+		if (typeof word === 'object') {
+			const word_mutate = word as InputField[];
+			const keywords = word_mutate.map((input) => {
+				let copy = extract_keywords(input.type, category) as ParseKeywordObject;
+				if (copy.value) {
+					copy.value.label = input.label;
+				}
+				return copy;
+			});
+			return keywords;
+		}
+
 		for (let i = 0; i < word.length; i++) {
 			const char = word[i];
 			if (stack.length === 0) {
@@ -96,37 +125,80 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 				current_arg += char;
 			}
 		}
-		return [lone_word, args];
+		return { category: category ?? '', value: { label: category ?? '', parsed: [[lone_word, args]] } };
 	}
 
-	const keyword = extract_keywords(input.type);
+	function display_input(parsed_obj: ParseKeywordObject): JSX.Element {
+		if (!parsed_obj?.value || !parsed_obj?.value?.parsed) return (<></>);
+		const label = parsed_obj.value.label;
+		const parsed = parsed_obj.value.parsed;
+		let react_element: JSX.Element = <></>;
 
-	switch (keyword[0]) {
-		case 'string': {
-			const [s_input, setInputState] = useState('');
-			pushState({ [input.label]: s_input });
-			return (<input type='text' placeholder={input.label} value={s_input} onChange={(e) => { setInputState(e.target.value) }} />)
+		function combine_react_element(new_elem: JSX.Element): JSX.Element {
+			react_element = condense_jsx_array([react_element, new_elem]);
+			return react_element;
 		}
-		case 'number': {
-			const [n_input, setInputState] = useState(0);
-			pushState({ [input.label]: n_input });
-			return (<input type='number' placeholder={input.label} value={n_input} onChange={(e) => { setInputState(parseInt(e.target.value)) }} />)
+
+		for (let i = 0; i < parsed.length; i++) {
+			const word = parsed[i];
+			switch (word[0]) {
+				case 'string': {
+					const [s_input, setInputState] = useState('');
+					pushState({ [label]: s_input });
+					combine_react_element(
+						<div>
+							<label style={{ fontSize: 'small' }}>{label}: </label>
+							<input type='text' placeholder={label} value={s_input} onChange={(e) => { setInputState(e.target.value) }} />
+						</div>
+					)
+					break;
+				}
+				case 'number': {
+					const [n_input, setInputState] = useState(0);
+					pushState({ [label]: n_input });
+					combine_react_element(
+						<div>
+							<label style={{ fontSize: 'small' }}>{label}: </label>
+							<input type='number' placeholder={label} value={n_input} onChange={(e) => { setInputState(parseInt(e.target.value)) }} />
+						</div>
+					)
+					break;
+				}
+				case 'dropdown': {
+					const [d_input, setInputState] = useState('');
+					pushState({ [label]: d_input });
+					combine_react_element(
+						<div>
+							<label style={{ fontSize: 'small' }}>{label}: </label>
+							<select value={d_input} onChange={(e) => { setInputState(e.target.value) }}>
+								<option value='' disabled>Select an option</option>
+								{word[1].map((option) => {
+									return (<option value={option}>{option}</option>)
+								})}
+							</select>
+						</div>
+					)
+					break;
+				}
+				default: {
+					break;
+				}
+			}
 		}
-		case 'dropdown': {
-			const [d_input, setInputState] = useState('');
-			pushState({ [input.label]: d_input });
-			return (<select value={d_input} onChange={(e) => { setInputState(e.target.value) }}>
-				<option value='' disabled>Select an option</option>
-				{keyword[1].map((option) => {
-					return (<option value={option}>{option}</option>)
-				})}
-			</select>
-			)
-		}
-		default: {
-			return (<></>)
-		}
+		return (react_element);
+
 	}
+
+	const keyword = extract_keywords(input.type, input.label);
+	if (Array.isArray(keyword)) {
+		return condense_jsx_array(keyword.map((obj) => {
+			return display_input(obj);
+		}))
+	} else {
+		let mutate = keyword as ParseKeywordObject;
+		return display_input(mutate);
+	}
+
 }
 
 type PopUpInputProps = {
