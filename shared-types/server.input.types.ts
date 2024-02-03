@@ -60,7 +60,7 @@ export const ExpectedTradeInputObject: InputObject = {
 		'spaces': 'number',
 		'offer': {
 			'source': 'dropdown[player]',
-			'offer': {
+			'anal': {
 				'money': 'number',
 				'properties': 'array[number][2]'
 			}

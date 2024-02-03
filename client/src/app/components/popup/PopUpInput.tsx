@@ -9,6 +9,7 @@
  */
 import { DispatchWithResult } from "@/util/GameUpdater";
 import { useRef, useState } from "react";
+import { Player, Space } from "shared-types";
 import { ExpectedInput, ExpectedInputObject, ExpectedTradeInputObject, InputObject, RequiredInputDecision, isRequiredInputDecision } from "shared-types/server.input.types"
 
 
@@ -98,7 +99,9 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 		if (typeof word === 'object') {
 			const word_mutate = word as InputField[];
 			const keywords = word_mutate.map((input) => {
-				let copy = extract_keywords(input.type, category) as ParseKeywordObject;
+				//check if type is an array/object
+				const new_category = typeof input.type === 'object' ? input.label : category;
+				let copy = extract_keywords(input.type, new_category) as ParseKeywordObject;
 				if (copy.value) {
 					copy.value.label = input.label;
 				}
@@ -128,15 +131,57 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 		return { category: category ?? '', value: { label: category ?? '', parsed: [[lone_word, args]] } };
 	}
 
-	function display_input(parsed_obj: ParseKeywordObject): JSX.Element {
-		if (!parsed_obj?.value || !parsed_obj?.value?.parsed) return (<></>);
+	type Sections = {
+		name: string;
+		elements: JSX.Element[];
+	}
+
+	//section storage
+	let sections: Sections[] = [];
+	function create_section(name: string) {
+		if (!sections.find((section) => section.name === name)) {
+			sections.push({ name: name, elements: [] });
+		}
+		return get_section(name);
+	}
+
+	function get_section(name: string) {
+		return sections.find((section) => section.name === name);
+	}
+
+	function push_to_section(name: string, element: JSX.Element) {
+		const section = create_section(name);
+
+		if (section) section.elements.push(element);
+	}
+
+	function compile_sections(): JSX.Element {
+		return condense_jsx_array(sections.map((section) => {
+			return (
+				<div className="flex column" style={{ gap: '.1rem' }}>
+					<h3 className="section-title" style={{ margin: '0', padding: '0', fontSize: '.4rem' }}>{section.name}</h3> {/* TODO: MOVE INTO A SCSS FILE */}
+					{condense_jsx_array(section.elements)}
+				</div>
+			)
+		}));
+	}
+
+
+	function compile_input(parsed_obj: ParseKeywordObject): boolean {
+		if (!parsed_obj?.value || !parsed_obj?.value?.parsed) return (false);
 		const label = parsed_obj.value.label;
 		const parsed = parsed_obj.value.parsed;
-		let react_element: JSX.Element = <></>;
+		const category = parsed_obj.category;
 
-		function combine_react_element(new_elem: JSX.Element): JSX.Element {
-			react_element = condense_jsx_array([react_element, new_elem]);
-			return react_element;
+		function combine_react_element(new_elem: JSX.Element) {
+			push_to_section(category, new_elem);
+		}
+		function craft_div(children: JSX.Element) {
+			return (
+				<div className="flex ">
+					{children}
+				</div>
+			)
 		}
 
 		for (let i = 0; i < parsed.length; i++) {
@@ -146,10 +191,12 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 					const [s_input, setInputState] = useState('');
 					pushState({ [label]: s_input });
 					combine_react_element(
-						<div>
-							<label style={{ fontSize: 'small' }}>{label}: </label>
-							<input type='text' placeholder={label} value={s_input} onChange={(e) => { setInputState(e.target.value) }} />
-						</div>
+						craft_div(
+							<>
+								<label style={{ fontSize: 'small' }}>{label}: </label>
+								<input type='text' placeholder={label} value={s_input} onChange={(e) => { setInputState(e.target.value) }} />
+							</>
+						)
 					)
 					break;
 				}
@@ -157,10 +204,12 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 					const [n_input, setInputState] = useState(0);
 					pushState({ [label]: n_input });
 					combine_react_element(
-						<div>
-							<label style={{ fontSize: 'small' }}>{label}: </label>
-							<input type='number' placeholder={label} value={n_input} onChange={(e) => { setInputState(parseInt(e.target.value)) }} />
-						</div>
+						craft_div(
+							<>
+								<label style={{ fontSize: 'small' }}>{label}: </label>
+								<input type='number' placeholder={label} value={n_input} onChange={(e) => { setInputState(parseInt(e.target.value)) }} />
+							</>
+						)
 					)
 					break;
 				}
@@ -168,49 +217,61 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 					const [d_input, setInputState] = useState('');
 					pushState({ [label]: d_input });
 					combine_react_element(
-						<div>
-							<label style={{ fontSize: 'small' }}>{label}: </label>
-							<select value={d_input} onChange={(e) => { setInputState(e.target.value) }}>
-								<option value='' disabled>Select an option</option>
-								{word[1].map((option) => {
-									return (<option value={option}>{option}</option>)
-								})}
-							</select>
-						</div>
+						craft_div(
+							<>
+								<label style={{ fontSize: 'small' }}>{label}: </label>
+								<select value={d_input} onChange={(e) => { setInputState(e.target.value) }}>
+									<option value='' disabled>Select an option</option>
+									{word[1].map((option) => {
+										return (<option value={option}>{option}</option>)
+									})}
+								</select>
+							</>
+						)
 					)
 					break;
 				}
 				default: {
-					break;
+					return false;
 				}
 			}
 		}
-		return (react_element);
-
+		return true;
 	}
 
-	const keyword = extract_keywords(input.type, input.label);
+	//return result of display_input
+	let keyword = extract_keywords(input.type, input.label);
 	if (Array.isArray(keyword)) {
-		return condense_jsx_array(keyword.map((obj) => {
-			return display_input(obj);
-		}))
+		keyword = unnest(keyword);
 	} else {
-		let mutate = keyword as ParseKeywordObject;
-		return display_input(mutate);
+		keyword = [keyword];
 	}
+	keyword.forEach((word) => {
+		compile_input(word);
+	});
+
+	return compile_sections();
 
 }
 
 type PopUpInputProps = {
 	input_style: RequiredInputDecision; //expected to be react state
 	onInputCompiled: DispatchWithResult<ExpectedInput, void>;
+	iface?: IPopUpInput;
 }
 
 type PopupInputStateStorage = {
 	[key: string]: string | number | boolean;
 }
 
-export default function PopUpInput({ input_style, onInputCompiled }: PopUpInputProps) {
+interface IPopUpInput {
+	getThisPlayer(): Player;
+	getPlayers(): Player[];
+	getSpacesByPlayer(player: Player): number[];
+	getSpaces(...spaces: number[]): Space[]
+}
+
+export default function PopUpInput({ input_style, onInputCompiled, iface }: PopUpInputProps) {
 
 	const input_ref = useRef<InputField[]>(convert(input_style));
 	const states = useRef<PopupInputStateStorage[]>([]);
