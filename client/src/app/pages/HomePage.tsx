@@ -13,7 +13,7 @@ import UsePopUp from '@/hooks/UsePopUp';
 import Board from '../components/board/Board';
 import { ConnectionInterface } from '@/obj/connection';
 import Alert, { AlertFunction, AlertIcon } from '../components/alert/Alert';
-import PopUpInput from '../components/popup/PopUpInput';
+import PopUpInput, { IPopUpInput } from '../components/popup/PopUpInput';
 import { ExpectedInput } from 'shared-types/server.input.types';
 
 
@@ -94,6 +94,21 @@ function HomePage() {
 		}, { getState: (() => { return gamestate_ref.current; }).bind(gamestate_ref), setState: setGamestate }, { getState: () => spaces, setState: setSpaces }, { getState: () => players, setState: setPlayers })
 	}
 
+	function IPopUpFactory(): IPopUpInput {
+		return {
+			getPlayers: () => players,
+			getThisPlayer: () => getPlayer(uuid.current.player_uuid) as Player,
+			getSpacesByPlayer: (player: Player) => {
+				return spaces.filter((space) => {
+					return space?._owner === player.uuid;
+				});
+			},
+			getSpaces: (...ids: UUID.UUID[]) => {
+				return spaces.filter((space) => ids.includes(space.uuid));
+			}
+		}
+	}
+
 	function getPlayer(id: UUID.UUID): Player | undefined {
 		return players?.find((player) => player.uuid === id);
 	}
@@ -130,7 +145,7 @@ function HomePage() {
 	return (
 		<main className={styles.container} >
 
-			<PopUpInput input_style="trade" onInputCompiled={(input: ExpectedInput) => { return; }} />
+			<PopUpInput input_style="trade" onInputCompiled={(input: ExpectedInput) => { return; }} iface={IPopUpFactory()} />
 			<div className={styles.description}>
 				<p>
 					<ReactJson src={text} theme="monokai" collapsed={true} />

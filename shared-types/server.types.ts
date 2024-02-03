@@ -1,4 +1,5 @@
-import { DecisionType, ExpectedInput, MonopolyEngineCommands } from "./monopoly.types";
+import { DecisionType, MonopolyEngineCommands } from "./monopoly.types";
+import { ExpectedInput } from "./server.input.types";
 
 export type Intents = 'create' | 'join' | 'response' | 'command'
 export type PlayerState = 'jail' | 'turn' | 'bankrupt' | 'idle' | 'paying'

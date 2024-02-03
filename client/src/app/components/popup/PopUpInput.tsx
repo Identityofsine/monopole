@@ -8,7 +8,8 @@
  * Updated : 01/31/2024 01:28 
  */
 import { DispatchWithResult } from "@/util/GameUpdater";
-import { useRef, useState } from "react";
+import { UUID } from "crypto";
+import { useEffect, useRef, useState } from "react";
 import { Player, Space } from "shared-types";
 import { ExpectedInput, ExpectedInputObject, ExpectedTradeInputObject, InputObject, RequiredInputDecision, isRequiredInputDecision } from "shared-types/server.input.types"
 
@@ -76,7 +77,7 @@ type ParseKeywordObject = {
 	category: string;
 	value: ParseKeywordReturn;
 }
-type ParseKeywordReturn = { label: string, parsed: [string, string[]][] };
+type ParseKeywordReturn = { label: string, parsed: [string, string[], ParseFlag?][] };
 
 function condense_jsx_array(arr: JSX.Element[]): JSX.Element {
 	if (arr.length === 0) return <></>;
@@ -88,14 +89,23 @@ function condense_jsx_array(arr: JSX.Element[]): JSX.Element {
 	)
 }
 
-function parse(input: InputField, pushState: (state: PopupInputStateStorage) => void): JSX.Element {
+enum ParseFlag {
+	NOTHING = 0x00,
+	SELF_FILL = 0x01,
+	IGNORE_SELF = 0x02,
+	ONLY_TARGET = 0x04,
+}
+
+function parse(input: InputField, pushState: (state: PopupInputStateStorage) => void, iface?: IPopUpInput): JSX.Element {
+
 
 	function extract_keywords(word: string, category?: string): ParseKeywordObject | ParseKeywordObject[] {
 		let lone_word = '';
 		let args: string[] = [];
 		let current_arg = '';
 		let stack = [];
-		if (!word) return { category: '', value: { label: '', parsed: [[lone_word, args]] } };
+		let flag: ParseFlag = 0x00;
+		if (!word) return { category: '', value: { label: '', parsed: [[lone_word, args, flag]] } };
 		if (typeof word === 'object') {
 			const word_mutate = word as InputField[];
 			const keywords = word_mutate.map((input) => {
@@ -112,6 +122,16 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 
 		for (let i = 0; i < word.length; i++) {
 			const char = word[i];
+			if (char.at(0) === '&') {
+				flag |= 0x01;
+				continue;
+			} else if (char.at(0) === '!') {
+				flag |= 0x02;
+				continue;
+			} else if (char.at(0) === '^') {
+				flag |= 0x04;
+				continue;
+			}
 			if (stack.length === 0) {
 				if (char === '[') {
 					stack.push('[');
@@ -128,7 +148,7 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 				current_arg += char;
 			}
 		}
-		return { category: category ?? '', value: { label: category ?? '', parsed: [[lone_word, args]] } };
+		return { category: category ?? '', value: { label: category ?? '', parsed: [[lone_word, args, flag]] } };
 	}
 
 	type Sections = {
@@ -186,15 +206,18 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 
 		for (let i = 0; i < parsed.length; i++) {
 			const word = parsed[i];
-			switch (word[0]) {
+			const type: string = word[0];
+			const args: string[] = word[1];
+			const flag: ParseFlag = word[2] ?? 0x00;
+			switch (type) {
 				case 'string': {
-					const [s_input, setInputState] = useState('');
+					const [s_input, setInputState] = useState(args[0] ?? '');
 					pushState({ [label]: s_input });
 					combine_react_element(
 						craft_div(
 							<>
 								<label style={{ fontSize: 'small' }}>{label}: </label>
-								<input type='text' placeholder={label} value={s_input} onChange={(e) => { setInputState(e.target.value) }} />
+								{flag ? <input type='text' placeholder={label} value={s_input} onChange={(e) => { setInputState(e.target.value) }} disabled /> : <input type='text' placeholder={label} value={s_input} onChange={(e) => { setInputState(e.target.value) }} />}
 							</>
 						)
 					)
@@ -214,17 +237,33 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 					break;
 				}
 				case 'dropdown': {
-					const [d_input, setInputState] = useState('');
+					const auto_fill = flag === ParseFlag.SELF_FILL;
+					const ignore_self = flag === ParseFlag.IGNORE_SELF;
+					const [d_input, setInputState] = useState(auto_fill ? iface?.getThisPlayer()?.uuid ?? '' : '');
+					useEffect(() => {
+						if (!iface || d_input !== '') return;
+						setInputState(auto_fill ? iface?.getThisPlayer()?.uuid ?? '' : '');
+						return () => { }
+					}, [iface])
 					pushState({ [label]: d_input });
 					combine_react_element(
 						craft_div(
 							<>
 								<label style={{ fontSize: 'small' }}>{label}: </label>
-								<select value={d_input} onChange={(e) => { setInputState(e.target.value) }}>
+								<select value={d_input} onChange={(e) => { setInputState(e.target.value) }} disabled={auto_fill}>
 									<option value='' disabled>Select an option</option>
-									{word[1].map((option) => {
-										return (<option value={option}>{option}</option>)
-									})}
+									{args[0] === 'player' ?
+										iface?.getPlayers().map((option) => {
+											if (ignore_self && option.uuid === iface?.getThisPlayer()?.uuid) return;
+											return (<option value={option.uuid}>{option.name}</option>)
+										})
+										: args[0] === 'space' ?
+											iface?.getSpacesByPlayer(iface.getThisPlayer()).map((option) => {
+												return (<option value={option.uuid}>{option.name}</option>)
+											})
+											: args.map((option) => {
+												return (<option value={option}>{option}</option>)
+											})}
 								</select>
 							</>
 						)
@@ -264,11 +303,11 @@ type PopupInputStateStorage = {
 	[key: string]: string | number | boolean;
 }
 
-interface IPopUpInput {
+export interface IPopUpInput {
 	getThisPlayer(): Player;
 	getPlayers(): Player[];
-	getSpacesByPlayer(player: Player): number[];
-	getSpaces(...spaces: number[]): Space[]
+	getSpacesByPlayer(player: Player): Space[];
+	getSpaces(...spaces: UUID[]): Space[]
 }
 
 export default function PopUpInput({ input_style, onInputCompiled, iface }: PopUpInputProps) {
@@ -309,7 +348,7 @@ export default function PopUpInput({ input_style, onInputCompiled, iface }: PopU
 	return (
 		<div className="flex column">
 			{input_ref.current.map((input, index) => {
-				return parse(input, pushState)
+				return parse(input, pushState, iface)
 			})}
 			<button onClick={() => { compile_data() }}>Submit</button>
 		</div>
