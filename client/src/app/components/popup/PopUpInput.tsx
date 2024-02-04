@@ -320,9 +320,68 @@ export default function PopUpInput({ input_style, onInputCompiled, iface }: PopU
 	}
 
 	function compile_data() {
-		states.current.forEach((state) => {
-			console.log(state);
-		});
+
+		let output: ExpectedInput = { decision: input_style, data: {} as any } as ExpectedInput;
+		function compile_trade(keys: string[], current_state: PopupInputStateStorage) {
+			for (let i = 0; i < keys.length; i++) {
+
+				const key = keys[i];
+				switch (key) {
+					case 'source': {
+						output.data = {
+							source: current_state[key] as string,
+							...output.data ?? {}
+						};
+						break;
+					}
+					case 'dest': {
+						output.data = {
+							dest: current_state[key] as string,
+							...output.data ?? {}
+						};
+						break;
+					}
+					case 't_money': {
+						output.data.offer = {
+							money: current_state[key] as number,
+							...output.data?.offer ?? {}
+						};
+						break;
+					}
+					case 't_spaces': {
+						output.data.offer = {
+							properties: current_state[key],
+							...output.data?.offer ?? {}
+						};
+						break;
+					}
+					case 'r_money': {
+						output.data.request = {
+							money: current_state[key] as number,
+							...output.data?.request ?? {}
+						};
+						break;
+					}
+					case 'r_spaces': {
+						output.data.request = {
+							properties: current_state[key],
+							...output.data?.request ?? {}
+						};
+						break;
+					}
+					default: {
+						break;
+					}
+				}
+			}
+		}
+
+		for (let i = 0; i < states.current.length; i++) {
+			const state = states.current[i];
+			const keys = Object.keys(state) as string[];
+			if (input_style === 'trade') compile_trade(keys, state);
+		}
+		console.log(output);
 		return;
 	}
 

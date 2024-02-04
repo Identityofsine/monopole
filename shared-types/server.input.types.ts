@@ -11,18 +11,15 @@ type UUID = string;
 
 //Trade Object
 export type Trade = {
-	source: Player;
-	offer: {
-		money: number;
-		properties: Space[];
-	};
+	money: number;
+	properties: UUID[];
 };
 
 
 //expected input for certian decisions : can be identified by string
 export type ExpectedInput = {
 	'decision': RequiredInputDecision;
-	'data': object
+	'data': any;
 }
 
 //expected input for certian decisions
@@ -31,6 +28,7 @@ export type ExpectedTradeInput = {
 		source: UUID;
 		dest: UUID;
 		offer: Trade;
+		request: Trade;
 	}
 } & ExpectedInput;
 
@@ -58,10 +56,13 @@ export const ExpectedTradeInputObject: InputObject = {
 		'offer': {
 			'source': '&dropdown[player]',
 			'dest': '!dropdown[player]',
-			'content': {
-				'money': 'number',
-				'spaces': '^dropdown[space]',
-				'properties': 'array[number][2]'
+			'offering': {
+				't_money': 'number',
+				't_spaces': 'dropdown[space]',
+			},
+			'request': {
+				'r_money': 'number',
+				'r_spaces': '^dropdown[space]',
 			}
 		}
 	}
