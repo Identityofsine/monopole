@@ -246,6 +246,7 @@ export class Monopoly {
 
 	private createTrade(trader: Player, player: Player | UUID.UUID, trade: Trade): boolean {
 		//TODO: implement
+		console.log("Create Trade:", trade);
 		return false;
 	}
 

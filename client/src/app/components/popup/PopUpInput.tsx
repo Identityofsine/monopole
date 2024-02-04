@@ -324,7 +324,6 @@ export default function PopUpInput({ input_style, onInputCompiled, iface }: PopU
 		let output: ExpectedInput = { decision: input_style, data: {} as any } as ExpectedInput;
 		function compile_trade(keys: string[], current_state: PopupInputStateStorage) {
 			for (let i = 0; i < keys.length; i++) {
-
 				const key = keys[i];
 				switch (key) {
 					case 'source': {
@@ -381,7 +380,8 @@ export default function PopUpInput({ input_style, onInputCompiled, iface }: PopU
 			const keys = Object.keys(state) as string[];
 			if (input_style === 'trade') compile_trade(keys, state);
 		}
-		console.log(output);
+
+		onInputCompiled(output);
 		return;
 	}
 

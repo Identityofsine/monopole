@@ -1,6 +1,6 @@
 import { MonopolyEngine, PlayerCommunicationLayer } from "../monopoly/monopoly";
 import { MonopolyError } from "../monopoly/monopoly.error";
-import { DecisionType, UUID, Filter, NotificationEvent, ExpectedInput, ExpectedMessages, ExpectedAlertMessages, NotificationType } from "shared-types";
+import { DecisionType, UUID, Filter, NotificationEvent, ExpectedInput, ExpectedMessages, ExpectedAlertMessages, NotificationType, ExpectedTradeInput } from "shared-types";
 import { Player } from "../monopoly/player";
 import ServerInstance from "./websocket";
 import * as WebSocket from 'ws';
@@ -149,8 +149,14 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 					break;
 				}
 				case 'trade': {
+					const trade_data = data.data as ExpectedTradeInput;
+					if (!trade_data) {
+						this.m_sendError(ws, 'Invalid Trade Request', false);
+						break;
+					}
+					//TODO: implement trade
 					this.m_sendError(ws, 'Not implemented yet', false);
-					communicationlayer.ignore();
+					communicationlayer.createTrade(trade_data.data.dest, trade_data.data.offer);
 					break;
 				}
 				case 'buy': {

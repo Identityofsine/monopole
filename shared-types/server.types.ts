@@ -26,6 +26,7 @@ export type ResponseIntent = {
 	intent: 'response'
 	state: PlayerState
 	decision: DecisionType
+	data?: ExpectedInput
 } & BaseIntent
 
 /* Server Sending Message */

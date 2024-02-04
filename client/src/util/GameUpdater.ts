@@ -2,7 +2,7 @@ import { AlertFunction, AlertIcon, AlertType } from "@/app/components/alert/Aler
 import { GameID, ICClient, PlayerHoldableSpace } from "@/app/pages/HomePage";
 import { send } from "process";
 import { Dispatch, SetStateAction } from "react";
-import { BaseIntent, BaseResponse, DecisionType, ExpectedMessages, GameResponse, Identifiable, Player, ResponseIntent, UUID, Space, CommandIntent, IsCommand, MonopolyEngineCommands, ErrorResponse, ExpectedAlertMessages } from "shared-types";
+import { BaseIntent, BaseResponse, DecisionType, ExpectedMessages, GameResponse, Identifiable, Player, ResponseIntent, UUID, Space, CommandIntent, IsCommand, MonopolyEngineCommands, ErrorResponse, ExpectedAlertMessages, ExpectedInput } from "shared-types";
 
 
 //TODO: move to shared-types
@@ -41,7 +41,7 @@ export interface GameHandler extends ISource {
 	* @summary {ISource is an interface that defines the methods that a class must implement to be a source of game updates, this should only be used by the Board Component}
 	*/
 export interface ISource {
-	sendDecision(choice: DecisionType): void;
+	sendDecision(choice: DecisionType, data?: ExpectedInput): void;
 	getPlayer(uuid: UUID.UUID): Player | undefined;
 }
 
@@ -233,8 +233,8 @@ export class GameUpdater implements GameHandler {
 		}
 	}
 
-	public sendDecision(choice: DecisionType): void {
-		this.playerHandle.sendDecision(choice);
+	public sendDecision(choice: DecisionType, input?: ExpectedInput): void {
+		this.playerHandle.sendDecision(choice, input);
 		this.icclayer.askPlayer([]);
 	}
 
@@ -345,6 +345,18 @@ export class PlayerHandle {
 		this.m_gcl.send(intent_block);
 	}
 
+	public trade(data: any) {
+		const intent_block: ResponseIntent = {
+			intent: 'response',
+			state: 'turn',
+			decision: 'trade',
+			name: 'trade',
+			uuid: this.m_gcl.getUUID(),
+			game_uuid: this.m_gcl.getGameUUID()
+		}
+		this.m_gcl.send(intent_block);
+	}
+
 	public returnDecisionTree(message: GameResponse): DecisionType[] {
 		if (!message.decision) return [];
 		if (typeof message.decision === 'string') return [message.decision];
@@ -378,7 +390,7 @@ export class PlayerHandle {
 		this.m_gcl.getPlayersState.setState(this.players);
 	}
 
-	public sendDecision(choice: DecisionType): void {
+	public sendDecision(choice: DecisionType, data?: ExpectedInput): void {
 		let intent_block: CommandIntent | ResponseIntent;
 
 		if (choice === 'start') {
@@ -391,7 +403,20 @@ export class PlayerHandle {
 			}
 			this.m_gcl.send(intent_block);
 			return;
+		} else if (choice === 'trade') {
+			intent_block = {
+				intent: 'response',
+				state: 'turn',
+				decision: choice,
+				name: 'trade',
+				data: data,
+				uuid: this.m_gcl.getUUID(),
+				game_uuid: this.m_gcl.getGameUUID()
+			}
+			this.m_gcl.send(intent_block);
+			return;
 		}
+
 
 		intent_block = {
 			intent: 'response',

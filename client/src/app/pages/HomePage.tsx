@@ -145,7 +145,7 @@ function HomePage() {
 	return (
 		<main className={styles.container} >
 
-			<PopUpInput input_style="trade" onInputCompiled={(input: ExpectedInput) => { return; }} iface={IPopUpFactory()} />
+			<PopUpInput input_style="trade" onInputCompiled={(input: ExpectedInput) => { game_updater.current?.sendDecision('trade', input) }} iface={IPopUpFactory()} />
 			<div className={styles.description}>
 				<p>
 					<ReactJson src={text} theme="monokai" collapsed={true} />
