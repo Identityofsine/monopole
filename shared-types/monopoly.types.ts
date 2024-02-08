@@ -54,7 +54,7 @@ export type Filter<A extends Record<string, any>, B extends keyof A> = {
 }
 
 //decisions
-export type DecisionType = 'roll' | 'buy' | 'sell' | 'demolish' | 'ignore' | 'pay' | MonopolyEngineCommands | RequiredInputDecision;
+export type DecisionType = 'roll' | 'buy' | 'sell' | 'demolish' | 'ignore' | 'pay' | 'trade_accept' | 'trade_decline' | MonopolyEngineCommands | RequiredInputDecision;
 
 export type NotificationEvent = {
 	type: NotificationType;

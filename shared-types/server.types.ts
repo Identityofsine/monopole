@@ -36,7 +36,7 @@ export type Responses = 'connect' | 'join' | 'respond' | 'message' | 'id' | 'upd
 //Expected Messages expected from the client
 export type ExpectedMessages = "HOST_OPTIONS" | "PLAYER_JOINED" | "STATUS_UPDATE" | "PLAYER_UPDATED" | "GAME_UPDATE" | "ROLL_UPDATE" | "TURN_UPDATE" | "SENT_TO_JAIL" | "JAIL_UPDATE" | "MONEY_UPDATE" | "JUST_JOINED" | "BUILDING_UPDATE" | ExpectedAlertMessages;
 
-export type ExpectedAlertMessages = "GENERAL_MESSAGE" | "BUILDING_BOUGHT" | "TRADE_SENT" | "TRADE_ACCEPT" | "PAID" | "EARNED";
+export type ExpectedAlertMessages = "GENERAL_MESSAGE" | "BUILDING_BOUGHT" | "TRADE_SENT" | "TRADE_ACCEPT" | "TRADE_DECLINE" | "TRADE_REQUEST" | "PAID" | "EARNED";
 
 
 //BaseResponse is the response that the server sends to the client, all responses that the server may send inherit from this

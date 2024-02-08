@@ -1,4 +1,3 @@
-import { Player, Space } from "./monopoly.types";
 
 //various inputs that are expected from the client
 export type RequiredInputDecision = 'trade' | 'mortgage' | 'unmortgage' | 'build' | 'demolish';
@@ -15,6 +14,13 @@ export type Trade = {
 	properties: UUID[];
 };
 
+export type TradeRequest = {
+	source: UUID;
+	dest: UUID;
+	offer: Trade;
+	request: Trade;
+}
+
 
 //expected input for certian decisions : can be identified by string
 export type ExpectedInput = {
@@ -25,11 +31,8 @@ export type ExpectedInput = {
 //expected input for certian decisions
 export type ExpectedTradeInput = {
 	data: {
-		source: UUID;
-		dest: UUID;
-		offer: Trade;
-		request: Trade;
-	}
+
+	} & TradeRequest;
 } & ExpectedInput;
 
 //expected input for certian decisions

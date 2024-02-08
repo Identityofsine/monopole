@@ -1,9 +1,10 @@
 import { cachePath, castSpace } from "../json/loader";
 import { MonopolyError } from "./monopoly.error";
-import { UUID, DecisionType, Filter, NotificationType, Trade, WaitObject } from "shared-types";
+import { UUID, DecisionType, Filter, NotificationType, Trade, WaitObject, ExpectedTradeInput, TradeRequest } from "shared-types";
 import { Player } from "./player";
 import { Property, Space } from "./space";
 import { MonopolyEngineCommands, MonopolyInterface } from "./types";
+import { ITrader, Trader } from "./trader";
 
 export class Pair {
 	dice1: number;
@@ -28,6 +29,7 @@ export class Monopoly {
 	private UUID: UUID.UUID;
 	private players: Player[] = [];
 	private spaces: Space[];
+	private trader: ITrader;
 	private wait: WaitObject = {
 		waiting: false,
 		who: '',
@@ -41,8 +43,8 @@ export class Monopoly {
 		this.spaces.forEach((space: Space, index: number) => {
 			space.setCommunicationLayer(this.m_BCLFactory(space));
 		})
+		this.trader = new Trader();
 		console.log('[monopoly] created new game with id %s', this.UUID);
-
 	}
 
 
@@ -54,7 +56,7 @@ export class Monopoly {
 			move: (amount: number) => this.movePlayer(player, amount),
 			buyProperty: () => this.buyProperty(player),
 			sellProperty: () => this.sellProperty(player),
-			createTrade: (_player: Player | UUID.UUID, trade: Trade) => this.createTrade(player, _player, trade),
+			createTrade: (_player: Player | UUID.UUID, trade: TradeRequest) => this.createTrade(player, _player, trade),
 			acceptTrade: (trade: Trade) => this.acceptTrade(player, trade),
 			ignore: () => this.stopWaiting()
 		}
@@ -244,9 +246,21 @@ export class Monopoly {
 		return false;
 	}
 
-	private createTrade(trader: Player, player: Player | UUID.UUID, trade: Trade): boolean {
+	private createTrade(trader: Player, player: Player | UUID.UUID, trade: TradeRequest): boolean {
 		//TODO: implement
-		console.log("Create Trade:", trade);
+		const offer = trade.offer;
+		const request = trade.request;
+		let plyr: Player | undefined;
+		if (player instanceof Player) {
+			plyr = player;
+		} else {
+			plyr = this.getPlayer(player);
+		}
+		if (plyr) {
+			const trader_t = this.trader.createTrade(trade);
+			plyr.notify({ type: NotificationType.DECISION, message: 'TRADE_REQUEST', decision: ['trade_accept', 'trade_decline'], data: trader_t })
+			return true;
+		}
 		return false;
 	}
 
@@ -332,13 +346,17 @@ export interface CommunicationLayer {
 	engine_id: UUID.UUID;
 }
 
+export interface TradeCommunicationLayer extends CommunicationLayer {
+	getPlayer(player: UUID.UUID): Player | undefined;
+}
+
 export interface PlayerCommunicationLayer extends CommunicationLayer {
 	rollDice(): Pair;
 	alreadyRolled(): boolean;
 	move(amount: number, unjail?: boolean): Space;
 	buyProperty(): Property | false;
 	sellProperty(): boolean;
-	createTrade(player: Player | UUID.UUID, trade: Trade): boolean;
+	createTrade(player: Player | UUID.UUID, trade: ExpectedTradeInput['data']): boolean;
 	acceptTrade(trade: Trade): boolean;
 	ignore(): void;
 }

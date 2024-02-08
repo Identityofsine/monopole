@@ -156,7 +156,7 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 					}
 					//TODO: implement trade
 					this.m_sendError(ws, 'Not implemented yet', false);
-					communicationlayer.createTrade(trade_data.data.dest, trade_data.data.offer);
+					communicationlayer.createTrade(trade_data.data.dest, trade_data.data);
 					break;
 				}
 				case 'buy': {
