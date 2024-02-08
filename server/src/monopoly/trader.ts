@@ -3,7 +3,7 @@ import { TradeCommunicationLayer } from './monopoly';
 
 export interface ITrader {
 	createTrade(trade: TradeRequest): UUID.UUID;
-	completeTrade(): boolean;
+	completeTrade(trade_id: UUID.UUID): boolean;
 	getTrade(trade_id: UUID.UUID): TradeStorageObject | undefined;
 	counterTrade(trade_id: UUID.UUID): TradeStorageObject;
 	cancelTrade(trade_id: UUID.UUID): TradeStorageObject | undefined;
@@ -16,16 +16,18 @@ type TradeStorageObject = {
 export class Trader implements ITrader {
 
 	private trades: TradeStorageObject[] = [];
-	private tcl: TradeCommunicationLayer;
 
-	public Trader(tcl: TradeCommunicationLayer) {
-		this.tcl = tcl;
+	public constructor(private readonly tcl: TradeCommunicationLayer) {
 	}
 
-	public static validTrade(trade: TradeRequest): boolean {
+	public static validTrade(trade: TradeRequest, tcl?: TradeCommunicationLayer): boolean {
 		if (trade.dest.trim() === "" && trade.source.trim() === "") return false;
 		if (trade.dest === trade.source) return false;
-		//check if dest and source are real players
+		if (tcl) {
+			const dest_player = tcl.getPlayer(trade.dest);
+			const source_player = tcl.getPlayer(trade.source);
+			if (!dest_player || !source_player) return false;
+		}
 		return true;
 	}
 
@@ -36,6 +38,7 @@ export class Trader implements ITrader {
 	}
 
 	public completeTrade(): boolean {
+
 		return false;
 	}
 

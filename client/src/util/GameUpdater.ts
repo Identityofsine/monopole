@@ -180,6 +180,7 @@ export class GameUpdater implements GameHandler {
 				alert_icon = 'house';
 				break;
 			}
+			case 'TRADE_ACCEPT':
 			case 'PAID':
 			case 'EARNED': {
 				alert_icon = 'payment';

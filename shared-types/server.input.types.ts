@@ -35,6 +35,12 @@ export type ExpectedTradeInput = {
 	} & TradeRequest;
 } & ExpectedInput;
 
+export type ExpectedTradeResponseInput = {
+	data: {
+		trade_id: UUID;
+	}
+} & ExpectedInput;
+
 //expected input for certian decisions
 export type ExpectedBuildInput = {
 	data: {

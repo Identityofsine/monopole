@@ -1,6 +1,6 @@
 import { MonopolyEngine, PlayerCommunicationLayer } from "../monopoly/monopoly";
 import { MonopolyError } from "../monopoly/monopoly.error";
-import { DecisionType, UUID, Filter, NotificationEvent, ExpectedInput, ExpectedMessages, ExpectedAlertMessages, NotificationType, ExpectedTradeInput } from "shared-types";
+import { DecisionType, UUID, Filter, NotificationEvent, ExpectedInput, ExpectedMessages, ExpectedAlertMessages, NotificationType, ExpectedTradeInput, ExpectedTradeResponseInput } from "shared-types";
 import { Player } from "../monopoly/player";
 import ServerInstance from "./websocket";
 import * as WebSocket from 'ws';
@@ -128,6 +128,28 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 
 	}
 
+	private m_handleTradeResponse(data: ResponseIntent, ws: WebSocket, game: MonopolyGame) {
+		const data_block: ExpectedTradeResponseInput = data.data as ExpectedTradeResponseInput;
+		if (data.decision !== 'trade_decline' && data.decision !== 'trade_accept') {
+			this.m_sendError(ws, 'Invalid Decision (?)', false);
+			return;
+		}
+		let accepted = data.decision === 'trade_accept';
+		let trade_id = data_block.data.uuid;
+		const engine = game.engine;
+		const trade_obj = engine.Monopoly.Trader.getTrade(trade_id);
+		if (!trade_obj) {
+			this.m_sendError(ws, 'Trade not found', false);
+			return;
+		}
+		if (accepted) {
+			engine.Monopoly.Trader.completeTrade(trade_id);
+
+		} else {
+			engine.Monopoly.Trader.cancelTrade(trade_id);
+		}
+	}
+
 	private m_responseStage(data: ResponseIntent, ws: WebSocket): void {
 		try {
 			if (!data.game_uuid) throw new MonopolyError('No game uuid provided');
@@ -155,8 +177,12 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 						break;
 					}
 					//TODO: implement trade
-					this.m_sendError(ws, 'Not implemented yet', false);
 					communicationlayer.createTrade(trade_data.data.dest, trade_data.data);
+					break;
+				}
+				case 'trade_decline':
+				case 'trade_accept': {
+					this.m_handleTradeResponse(data, ws, engine);
 					break;
 				}
 				case 'buy': {
@@ -309,6 +335,7 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 			message: { message: notification.message, object: notification?.data ?? {} },
 			success: true,
 		}
+		console.log('[monopolyserver] sending notification to player: %s', player.UUID, message);
 		socket.send(JSON.stringify(message));
 	}
 

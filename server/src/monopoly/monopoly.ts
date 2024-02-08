@@ -43,7 +43,7 @@ export class Monopoly {
 		this.spaces.forEach((space: Space, index: number) => {
 			space.setCommunicationLayer(this.m_BCLFactory(space));
 		})
-		this.trader = new Trader();
+		this.trader = new Trader(this.m_TCLFactory());
 		console.log('[monopoly] created new game with id %s', this.UUID);
 	}
 
@@ -59,6 +59,13 @@ export class Monopoly {
 			createTrade: (_player: Player | UUID.UUID, trade: TradeRequest) => this.createTrade(player, _player, trade),
 			acceptTrade: (trade: Trade) => this.acceptTrade(player, trade),
 			ignore: () => this.stopWaiting()
+		}
+	}
+
+	public m_TCLFactory(): TradeCommunicationLayer {
+		return {
+			engine_id: this.UUID,
+			getPlayer: (uuid: UUID.UUID) => this.getPlayer(uuid),
 		}
 	}
 
@@ -82,6 +89,10 @@ export class Monopoly {
 
 	public get didRoll(): boolean {
 		return this.didCurrentPlayerRoll;
+	}
+
+	public get Trader(): ITrader {
+		return this.trader;
 	}
 
 	private waitForPlayer(player: Player): void {
@@ -247,7 +258,7 @@ export class Monopoly {
 	}
 
 	private createTrade(trader: Player, player: Player | UUID.UUID, trade: TradeRequest): boolean {
-		//TODO: implement
+		if (!Trader.validTrade(trade, this.m_TCLFactory())) return false;
 		const offer = trade.offer;
 		const request = trade.request;
 		let plyr: Player | undefined;
@@ -314,6 +325,7 @@ export class MonopolyEngine {
 		this.gameStarted = true;
 		this.engineThread = this.engine();
 	}
+
 
 	public get Monopoly(): Monopoly {
 		return this.monopoly;
