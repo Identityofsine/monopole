@@ -385,7 +385,6 @@ export class MonopolyEngine {
 
 	private async engine() {
 		while (this.gameStarted) {
-
 			this.monopoly.nextTurn();
 			await MonopolyEngine.sleep(this.ENGINE_TICK)
 		}

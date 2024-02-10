@@ -128,7 +128,15 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 
 	}
 
+	private m_isPlayerInTurn(game: MonopolyGame, player: UUID.UUID): boolean {
+		const engine = game.engine;
+		const current_player = engine.Monopoly.CurrentPlayer;
+		console.log("[monopolyserver] current player: ", current_player.UUID, "player: ", player);
+		return current_player.UUID === player;
+	}
+
 	private m_handleTradeResponse(data: ResponseIntent, ws: WebSocket, game: MonopolyGame) {
+
 		const data_block: ExpectedTradeResponseInput = data.data as ExpectedTradeResponseInput;
 		if (!data_block) {
 			this.m_sendError(ws, 'Invalid Trade Response', false);
@@ -166,6 +174,10 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 			const action = data.decision;
 			switch (action) {
 				case 'roll': {
+					if (!this.m_isPlayerInTurn(engine, data?.uuid ?? '')) {
+						this.m_sendError(ws, 'Not your turn', false);
+						return;
+					}
 					if (engine.engine.Monopoly.didRoll) {
 						this.m_sendError(ws, 'You are waiting for a decision, please wait', false);
 						return;
@@ -174,6 +186,10 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 					break;
 				}
 				case 'trade': {
+					if (!this.m_isPlayerInTurn(engine, data?.uuid ?? '')) {
+						this.m_sendError(ws, 'Not your turn', false);
+						return;
+					}
 					const trade_data = data?.data as ExpectedTradeInput;
 					if (!trade_data) {
 						this.m_sendError(ws, 'Invalid Trade Request', false);
