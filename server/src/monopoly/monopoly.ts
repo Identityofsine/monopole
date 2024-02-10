@@ -36,6 +36,7 @@ export class Monopoly {
 	}
 	private currentPlayer: number = -1;
 	private didCurrentPlayerRoll: boolean = false;
+	private currentPlayerDecisions: DecisionType[] = [];
 
 	public constructor(uuid?: UUID.UUID) {
 		this.UUID = uuid ?? UUID.generateUUID(15234);
@@ -66,8 +67,9 @@ export class Monopoly {
 		return {
 			engine_id: this.UUID,
 			getPlayer: (uuid: UUID.UUID) => this.getPlayer(uuid),
-			changeOwner: (property: Property | UUID.UUID, player: Player) => this.changeOwner(property, player),
+			changeOwner: (property: Property | UUID.UUID, player: Player | UUID.UUID) => this.changeOwner(property, player),
 			getProperty: (property: UUID.UUID) => this.getProperty(property),
+			resendDecisions: (player: Player | UUID.UUID) => this.resendDecisions(player)
 		}
 	}
 
@@ -95,6 +97,15 @@ export class Monopoly {
 
 	public get Trader(): ITrader {
 		return this.trader;
+	}
+
+	private resendDecisions(plyr: Player | UUID.UUID) {
+		if (typeof plyr === 'string') {
+			plyr = this.getPlayer(plyr) as Player;
+		}
+		if (plyr) {
+			plyr.notify({ type: NotificationType.DECISION, message: 'TURN_UPDATE', decision: this.currentPlayerDecisions });
+		}
 	}
 
 	private waitForPlayer(player: Player): void {
@@ -186,6 +197,7 @@ export class Monopoly {
 				land_response.decision = [land_response.decision];
 			}
 			const decisions: DecisionType[] = [...land_response.decision, ...general_decisions];
+			this.currentPlayerDecisions = decisions;
 			player.notify({ type: NotificationType.DECISION, message: 'TURN_UPDATE', decision: decisions, data: { position: player.Position, ...space } })
 			this.waitForPlayer(player);
 		}
@@ -216,7 +228,8 @@ export class Monopoly {
 		const jailSpace: number = this.spaces.findIndex((space) => space.type === 9);
 		player.setPosition(jailSpace);
 		player.Jail = true;
-		player.notify({ type: NotificationType.DECISION, message: 'SENT_TO_JAIL', decision: ['pay', 'roll'], data: 'You are now in Jail!' });
+		this.currentPlayerDecisions = ['pay', 'roll'];
+		player.notify({ type: NotificationType.DECISION, message: 'SENT_TO_JAIL', decision: this.currentPlayerDecisions, data: 'You are now in Jail!' });
 	}
 
 	public getPlayer(uuid: UUID.UUID): Player | undefined {
@@ -240,24 +253,17 @@ export class Monopoly {
 		return this.players[this.currentPlayer];
 	}
 
-	private changeOwner(property: Property | UUID.UUID, player: Player | UUID.UUID): void {
-		if (!(property instanceof Property)) {
-			const _prop = this.spaces.find((space) => {
-				if (space.UUID === property) {
-					return true;
-				}
-				return false;
-			});
-			if (!_prop) throw new MonopolyError('Property not found');
-			property = _prop as Property;
+	private changeOwner(property: Property | UUID.UUID, player: Player | UUID.UUID): Property | undefined {
+		if (property instanceof Property) {
+			property.setOwner(player);
+			return property;
 		}
-		if (!(player instanceof Player)) {
-			const _player = this.getPlayer(player);
-			if (!_player) throw new MonopolyError('Player not found');
-			player = _player;
+		const props = this.getProperty(property);
+		if (props) {
+			props.setOwner(player);
+			return props;
 		}
-
-		property.setOwner(player.UUID);
+		return undefined;
 	}
 
 	private buyProperty(player: Player): Property | false {
@@ -391,8 +397,9 @@ export interface CommunicationLayer {
 
 export interface TradeCommunicationLayer extends CommunicationLayer {
 	getPlayer(player: UUID.UUID): Player | undefined;
-	changeOwner(property: Property | UUID.UUID, player: Player): void;
+	changeOwner(property: Property | UUID.UUID, player: Player | UUID.UUID): Property | undefined;
 	getProperty(property: UUID.UUID): Property | undefined;
+	resendDecisions(player: Player | UUID.UUID): void;
 }
 
 export interface PlayerCommunicationLayer extends CommunicationLayer {

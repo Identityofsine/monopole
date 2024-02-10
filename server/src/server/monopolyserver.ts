@@ -147,8 +147,7 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 			return;
 		}
 		if (accepted) {
-			engine.Monopoly.Trader.completeTrade(trade_id);
-
+			engine.Monopoly.Trader.completeTrade(trade_id, (property: Property) => { this.m_sendBuildingUpdate.bind(this, game)(property) });
 		} else {
 			engine.Monopoly.Trader.cancelTrade(trade_id);
 		}
@@ -241,6 +240,7 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 	}
 
 	private m_sendBuildingUpdate(game: MonopolyGame, space: Property) {
+		console.log('[monopolyserver] sending building update, space: %s', space);
 		const update: GameResponse = {
 			response: 'update',
 			recipient: 'game',

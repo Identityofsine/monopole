@@ -56,8 +56,13 @@ export class Property extends Space {
 		return this._owner;
 	}
 
-	public setOwner(owner: UUID.UUID | null): void {
-		this._owner = owner;
+	public setOwner(owner: UUID.UUID | Player): void {
+		if (owner instanceof Player) {
+			this._owner = owner.UUID;
+		} else {
+			this._owner = owner;
+		}
+		console.log(this);
 	}
 
 	protected override m_landinformationFactory(player: Player, shouldWait: boolean, decision?: DecisionType | DecisionType[]): LandInformation {

@@ -1,5 +1,6 @@
 import { NotificationType, TradeRequest, UUID } from 'shared-types'
 import { TradeCommunicationLayer } from './monopoly';
+import { Player } from './player'
 import { Property } from './space';
 
 export interface ITrader {
@@ -49,33 +50,36 @@ export class Trader implements ITrader {
 		const source_player = this.tcl.getPlayer(trade.source);
 		if (!dest_player || !source_player) return false;
 
+		const giveProperty = (player: Player, property: string[] | string) => {
+			if (typeof property === 'string') {
+				if (!property || property.trim() === "") return;
+				const _prop = this.tcl.changeOwner(property, player);
+				if (!_prop) return;
+				if (callback) {
+					callback(_prop)
+				}
+				return;
+			}
+			property?.forEach((prop) => {
+				giveProperty(player, prop);
+			});
+		}
+
 		//swap request and offer
 		source_player.giveMoney(dest_player.takeMoney(trade.request.money));
 		dest_player.giveMoney(source_player.takeMoney(trade.offer.money));
 
-		trade.request.properties?.forEach((property) => {
-			this.tcl.changeOwner(property, source_player);
-		});
-		trade.offer.properties?.forEach((property) => {
-			this.tcl.changeOwner(property, dest_player);
-		});
+		giveProperty(dest_player, trade.offer.properties);
+		giveProperty(source_player, trade.request.properties);
 
-		if (callback) {
-			trade.request.properties?.forEach((property) => {
-				const prop = this.tcl.getProperty(property);
-				if (prop) callback(prop);
-			});
-			trade.offer.properties?.forEach((property) => {
-				const prop = this.tcl.getProperty(property);
-				if (prop) callback(prop);
-			});
-		}
 
 		source_player.notify({ 'type': NotificationType.INFO, message: 'TRADE_ACCEPT', data: `Trade with ${dest_player.name} was successful!` });
 		dest_player.notify({ 'type': NotificationType.INFO, message: 'TRADE_ACCEPT', data: `Trade with ${source_player.name} was successful!` });
 
 		dest_player.notify({ 'type': NotificationType.FORMAL, message: 'STATUS_UPDATE', data: { recieved: trade.offer, lost: trade.request } });
 		source_player.notify({ 'type': NotificationType.FORMAL, message: 'STATUS_UPDATE', data: { recieved: trade.request, lost: trade.offer } });
+
+		this.tcl.resendDecisions(source_player);
 
 		return true;
 	}
