@@ -66,6 +66,8 @@ export class Monopoly {
 		return {
 			engine_id: this.UUID,
 			getPlayer: (uuid: UUID.UUID) => this.getPlayer(uuid),
+			changeOwner: (property: Property | UUID.UUID, player: Player) => this.changeOwner(property, player),
+			getProperty: (property: UUID.UUID) => this.getProperty(property),
 		}
 	}
 
@@ -104,6 +106,15 @@ export class Monopoly {
 	private stopWaiting(): void {
 		this.wait.waiting = false;
 		this.wait.who = '';
+	}
+
+	private getProperty(property: UUID.UUID): Property | undefined {
+		return this.spaces.find((space) => {
+			if (space.UUID === property) {
+				return true;
+			}
+			return false;
+		}) as Property | undefined;
 	}
 
 	public addPlayer(player_obj: string | Player, IMonopoly?: MonopolyInterface<PlayerCommunicationLayer>): void {
@@ -227,6 +238,26 @@ export class Monopoly {
 
 	public get CurrentPlayer(): Player {
 		return this.players[this.currentPlayer];
+	}
+
+	private changeOwner(property: Property | UUID.UUID, player: Player | UUID.UUID): void {
+		if (!(property instanceof Property)) {
+			const _prop = this.spaces.find((space) => {
+				if (space.UUID === property) {
+					return true;
+				}
+				return false;
+			});
+			if (!_prop) throw new MonopolyError('Property not found');
+			property = _prop as Property;
+		}
+		if (!(player instanceof Player)) {
+			const _player = this.getPlayer(player);
+			if (!_player) throw new MonopolyError('Player not found');
+			player = _player;
+		}
+
+		property.setOwner(player.UUID);
 	}
 
 	private buyProperty(player: Player): Property | false {
@@ -360,6 +391,8 @@ export interface CommunicationLayer {
 
 export interface TradeCommunicationLayer extends CommunicationLayer {
 	getPlayer(player: UUID.UUID): Player | undefined;
+	changeOwner(property: Property | UUID.UUID, player: Player): void;
+	getProperty(property: UUID.UUID): Property | undefined;
 }
 
 export interface PlayerCommunicationLayer extends CommunicationLayer {

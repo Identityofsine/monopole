@@ -42,6 +42,7 @@ export enum NotificationType {
 	INFO,
 	DECISION,
 	WARNING,
+	FORMAL,
 	ERROR
 }
 

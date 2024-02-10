@@ -2,7 +2,7 @@ import { AlertFunction, AlertIcon, AlertType } from "@/app/components/alert/Aler
 import { GameID, ICClient, PlayerHoldableSpace } from "@/app/pages/HomePage";
 import { send } from "process";
 import { Dispatch, SetStateAction } from "react";
-import { BaseIntent, BaseResponse, DecisionType, ExpectedMessages, GameResponse, Identifiable, Player, ResponseIntent, UUID, Space, CommandIntent, IsCommand, MonopolyEngineCommands, ErrorResponse, ExpectedAlertMessages, ExpectedInput } from "shared-types";
+import { BaseIntent, BaseResponse, DecisionType, ExpectedMessages, GameResponse, Identifiable, Player, ResponseIntent, UUID, Space, CommandIntent, IsCommand, MonopolyEngineCommands, ErrorResponse, ExpectedAlertMessages, ExpectedInput, ExpectedTradeResponseInput } from "shared-types";
 
 
 //TODO: move to shared-types
@@ -213,6 +213,9 @@ export class GameUpdater implements GameHandler {
 				if (decision.includes('roll')) {
 					this.alerter.throwInfo('Your turn!', 'dice');
 				}
+				if (decision.includes('trade_accept') || decision.includes('trade_decline')) {
+					this.playerHandle.setCurrentTrade((event.message as any).object);
+				}
 				if (message.message === 'SENT_TO_JAIL') {
 					this.alerter.throwInfo('You have been sent to jail!', 'alert');
 				}
@@ -331,6 +334,7 @@ export class SpaceHandle {
 export class PlayerHandle {
 
 	private players: Player[] = [];
+	private current_trade: UUID.UUID | undefined;
 
 	public constructor(private m_gcl: GameUpdaterCommunicationLayer) { }
 
@@ -356,6 +360,10 @@ export class PlayerHandle {
 			game_uuid: this.m_gcl.getGameUUID()
 		}
 		this.m_gcl.send(intent_block);
+	}
+
+	public setCurrentTrade(trade_id: UUID.UUID) {
+		this.current_trade = trade_id;
 	}
 
 	public returnDecisionTree(message: GameResponse): DecisionType[] {
@@ -416,6 +424,23 @@ export class PlayerHandle {
 			}
 			this.m_gcl.send(intent_block);
 			return;
+		} else if (choice === 'trade_accept') {
+			intent_block = {
+				intent: 'response',
+				state: 'turn',
+				decision: choice,
+				name: 'trade',
+				uuid: this.m_gcl.getUUID(),
+				game_uuid: this.m_gcl.getGameUUID(),
+				data: {
+					decision: 'trade',
+					data: {
+						trade_id: this.current_trade
+					}
+				}
+			}
+			this.m_gcl.send(intent_block);
+			return;
 		}
 
 
@@ -439,6 +464,7 @@ class AlertSystem {
 	}
 
 	public throwInfo(message: string, icon_type?: AlertIcon) {
+		if (typeof message !== 'string') message = JSON.stringify(message);
 		this.m_gcl.alert(message, "INFO", icon_type);
 	}
 

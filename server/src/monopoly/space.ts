@@ -48,7 +48,7 @@ export class Property extends Space {
 
 	public _owner: UUID.UUID | null = null;
 
-	constructor(public readonly id: number, public readonly name: string, public readonly type: number, public readonly price: number) {
+	constructor(public readonly id: number, public readonly name: string, public readonly type: number, public readonly price: number, public mortgaged: boolean = false) {
 		super(id, name, type);
 	}
 

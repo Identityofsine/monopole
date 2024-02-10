@@ -130,12 +130,16 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 
 	private m_handleTradeResponse(data: ResponseIntent, ws: WebSocket, game: MonopolyGame) {
 		const data_block: ExpectedTradeResponseInput = data.data as ExpectedTradeResponseInput;
+		if (!data_block) {
+			this.m_sendError(ws, 'Invalid Trade Response', false);
+			return;
+		}
 		if (data.decision !== 'trade_decline' && data.decision !== 'trade_accept') {
 			this.m_sendError(ws, 'Invalid Decision (?)', false);
 			return;
 		}
 		let accepted = data.decision === 'trade_accept';
-		let trade_id = data_block.data.uuid;
+		let trade_id = data_block.data.trade_id;
 		const engine = game.engine;
 		const trade_obj = engine.Monopoly.Trader.getTrade(trade_id);
 		if (!trade_obj) {
@@ -171,7 +175,7 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 					break;
 				}
 				case 'trade': {
-					const trade_data = data.data as ExpectedTradeInput;
+					const trade_data = data?.data as ExpectedTradeInput;
 					if (!trade_data) {
 						this.m_sendError(ws, 'Invalid Trade Request', false);
 						break;
