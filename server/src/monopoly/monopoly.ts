@@ -221,6 +221,7 @@ export class Monopoly {
 			player.notify({ type: NotificationType.DECISION, message: 'JAIL_UPDATE', decision: ['pay', 'roll'] });
 			return;
 		}
+		this.currentPlayerDecisions = ['roll'];
 		player.notify({ type: NotificationType.DECISION, message: 'TURN_UPDATE', decision: 'roll' });
 	}
 
