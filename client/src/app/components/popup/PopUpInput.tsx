@@ -294,7 +294,7 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 }
 
 type PopUpInputProps = {
-	input_style: RequiredInputDecision; //expected to be react state
+	input_style: RequiredInputDecision | ''; //expected to be react state
 	onInputCompiled: DispatchWithResult<ExpectedInput, void>;
 	iface?: IPopUpInput;
 }
@@ -312,12 +312,12 @@ export interface IPopUpInput {
 
 export default function PopUpInput({ input_style, onInputCompiled, iface }: PopUpInputProps) {
 
-	const input_ref = useRef<InputField[]>(convert(input_style));
-	const states = useRef<PopupInputStateStorage[]>([]);
-
 	if (!isRequiredInputDecision(input_style)) {
 		return (<></>)
 	}
+
+	const input_ref = useRef<InputField[]>(convert(input_style));
+	const states = useRef<PopupInputStateStorage[]>([]);
 
 	function compile_data() {
 
