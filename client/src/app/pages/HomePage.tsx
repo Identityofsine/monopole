@@ -9,7 +9,7 @@ import RowOrganizer from '../components/board/RowOrganizer';
 import { BaseIntent, BaseResponse, DecisionType, GameResponse, Identifiable, Player, Space, UUID } from 'shared-types';
 import { GameHandler, GameState, GameUpdater, ISource, SpaceHandle } from '@/util/GameUpdater';
 import PopUp from '../components/popup/PopUp';
-import UsePopUp from '@/hooks/UsePopUp';
+import UsePopUp, { UsePopUpInput } from '@/hooks/UsePopUp';
 import Board from '../components/board/Board';
 import { ConnectionInterface } from '@/obj/connection';
 import Alert, { AlertFunction, AlertIcon } from '../components/alert/Alert';
@@ -53,6 +53,7 @@ function HomePage() {
 
 	//popup window.
 	const popup = (UsePopUp(true));
+	const popup_input = (UsePopUpInput(false));
 	//alert window
 	const alert = Alert();
 
@@ -145,7 +146,7 @@ function HomePage() {
 	return (
 		<main className={styles.container} >
 
-			<PopUpInput input_style="trade" onInputCompiled={(input: ExpectedInput) => { game_updater.current?.sendDecision('trade', input) }} iface={IPopUpFactory()} />
+			<popup_input.element input_style="trade" onInputCompiled={(input: ExpectedInput) => { game_updater.current?.sendDecision('trade', input) }} iface={IPopUpFactory()} />
 			<div className={styles.description}>
 				<p>
 					<ReactJson src={text} theme="monokai" collapsed={true} />
@@ -180,6 +181,12 @@ function HomePage() {
 				{gamestate !== 'INACTIVE' &&
 					<div className="flex space-between fill-container align-bottom">
 						<span>Money:{getPlayer(uuid.current.player_uuid)?.money}</span>
+						<span
+							style={{ fontSize: '.2rem' }}
+							onClick={() => popup_input.open()}
+						>
+							Trade
+						</span>
 						<span
 							style={{ fontSize: '.2rem' }}
 							onClick={() => copyToClipboard(uuid.current.game_uuid)}

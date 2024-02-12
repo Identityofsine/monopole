@@ -7,11 +7,13 @@
  * Created : 01/31/2024
  * Updated : 01/31/2024 01:28 
  */
+import '../../styles/popupinput.scss';
 import { DispatchWithResult } from "@/util/GameUpdater";
 import { UUID } from "crypto";
-import { useEffect, useRef, useState } from "react";
+import { Dispatch, useEffect, useRef, useState } from "react";
 import { Player, Space } from "shared-types";
 import { ExpectedInput, ExpectedInputObject, ExpectedTradeInputObject, InputObject, RequiredInputDecision, isRequiredInputDecision } from "shared-types/server.input.types"
+import { PopUpProps } from './PopUp';
 
 
 //typescript function thats going to go crazy...
@@ -293,11 +295,11 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 
 }
 
-type PopUpInputProps = {
+export type PopUpInputProps = {
 	input_style: RequiredInputDecision | ''; //expected to be react state
 	onInputCompiled: DispatchWithResult<ExpectedInput, void>;
 	iface?: IPopUpInput;
-}
+} & PopUpProps;
 
 type PopupInputStateStorage = {
 	[key: string]: string | number | boolean;
@@ -310,7 +312,7 @@ export interface IPopUpInput {
 	getSpaces(...spaces: UUID[]): Space[]
 }
 
-export default function PopUpInput({ input_style, onInputCompiled, iface }: PopUpInputProps) {
+export default function PopUpInput({ input_style, onInputCompiled, iface, ...props }: PopUpInputProps) {
 
 	if (!isRequiredInputDecision(input_style)) {
 		return (<></>)
@@ -405,11 +407,13 @@ export default function PopUpInput({ input_style, onInputCompiled, iface }: PopU
 	}
 
 	return (
-		<div className="flex column">
-			{input_ref.current.map((input, index) => {
-				return parse(input, pushState, iface)
-			})}
-			<button onClick={() => { compile_data() }}>Submit</button>
+		<div className="popup-input absolute center-absolute">
+			<div className="flex column align-center">
+				{input_ref.current.map((input, index) => {
+					return parse(input, pushState, iface)
+				})}
+				<button onClick={() => { compile_data() }}>Submit</button>
+			</div>
 		</div>
 	)
 }
