@@ -160,7 +160,7 @@ function HomePage() {
 	return (
 		<main className={styles.container} >
 
-			<popup_input.element input_style={popup_input_state} onInputCompiled={(input: ExpectedInput) => { /* game_updater.current?.sendDecision('trade', input) */ console.log(input); }} iface={IPopUpFactory()} />
+			<popup_input.element input_style={popup_input_state} onInputCompiled={(input: ExpectedInput) => { game_updater.current?.sendDecision('trade', input) }} iface={IPopUpFactory()} />
 
 			<div className={styles.description}>
 				<p>
