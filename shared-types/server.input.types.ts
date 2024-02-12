@@ -64,7 +64,7 @@ export const ExpectedTradeInputObject: InputObject = {
 	'data': {
 		'offer': {
 			'source': '&dropdown[player]',
-			'dest': '!dropdown[player]',
+			'dest': '>!dropdown[player]',
 			'offering': {
 				't_money': 'number',
 				't_spaces': 'dropdown[space]',

@@ -101,7 +101,7 @@ function HomePage() {
 			getThisPlayer: () => getPlayer(uuid.current.player_uuid) as Player,
 			getSpacesByPlayer: (player: Player) => {
 				return spaces.filter((space) => {
-					return space?._owner === player.uuid;
+					return space?._owner === player?.uuid ?? '';
 				});
 			},
 			getSpaces: (...ids: UUID.UUID[]) => {

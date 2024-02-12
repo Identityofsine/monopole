@@ -96,6 +96,7 @@ enum ParseFlag {
 	SELF_FILL = 0x01,
 	IGNORE_SELF = 0x02,
 	ONLY_TARGET = 0x04,
+	TARGETER = 0x08,
 }
 
 function parse(input: InputField, pushState: (state: PopupInputStateStorage) => void, iface?: IPopUpInput): JSX.Element {
@@ -132,6 +133,9 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 				continue;
 			} else if (char.at(0) === '^') {
 				flag |= 0x04;
+				continue;
+			} else if (char.at(0) === '>') {
+				flag |= 0x08;
 				continue;
 			}
 			if (stack.length === 0) {
@@ -189,6 +193,11 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 	}
 
 
+	const [target, setTarget] = useState<UUID>('' as UUID);
+	useEffect(() => {
+		console.log("target:", target);
+	}, [target])
+
 	function compile_input(parsed_obj: ParseKeywordObject): boolean {
 		if (!parsed_obj?.value || !parsed_obj?.value?.parsed) return (false);
 		const label = parsed_obj.value.label;
@@ -206,6 +215,12 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 			)
 		}
 
+
+
+		function get_target_player() {
+			console.log("uuid:", target);
+			return iface?.getPlayers().find((player) => player.uuid === target);
+		}
 		for (let i = 0; i < parsed.length; i++) {
 			const word = parsed[i];
 			const type: string = word[0];
@@ -239,20 +254,28 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 					break;
 				}
 				case 'dropdown': {
-					const auto_fill = flag === ParseFlag.SELF_FILL;
-					const ignore_self = flag === ParseFlag.IGNORE_SELF;
+					const auto_fill = flag & ParseFlag.SELF_FILL;
+					const ignore_self = flag & ParseFlag.IGNORE_SELF;
+					const targeting_module = flag & ParseFlag.TARGETER;
 					const [d_input, setInputState] = useState(auto_fill ? iface?.getThisPlayer()?.uuid ?? '' : '');
 					useEffect(() => {
 						if (!iface || d_input !== '') return;
 						setInputState(auto_fill ? iface?.getThisPlayer()?.uuid ?? '' : '');
 						return () => { }
 					}, [iface])
+					useEffect(() => {
+						if (targeting_module === 8 && d_input !== '') {
+							setTarget(d_input as UUID);
+						}
+					}, [d_input])
+
+
 					pushState({ [label]: d_input });
 					combine_react_element(
-						craft_div(
+						craft_div.bind(target)(
 							<>
 								<label style={{ fontSize: 'small' }}>{label}: </label>
-								<select value={d_input} onChange={(e) => { setInputState(e.target.value) }} disabled={auto_fill}>
+								<select value={d_input} onChange={(e) => { setInputState(e.target.value) }} disabled={auto_fill > 0}>
 									<option value='' disabled>Select an option</option>
 									{args[0] === 'player' ?
 										iface?.getPlayers().map((option) => {
@@ -260,9 +283,13 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 											return (<option value={option.uuid}>{option.name}</option>)
 										})
 										: args[0] === 'space' ?
-											iface?.getSpacesByPlayer(iface.getThisPlayer()).map((option) => {
-												return (<option value={option.uuid}>{option.name}</option>)
-											})
+											flag & ParseFlag.ONLY_TARGET
+												? iface?.getSpacesByPlayer(get_target_player()).map((option) => {
+													return (<option key={target} value={option.uuid}>{option.name}</option>)
+												})
+												: iface?.getSpacesByPlayer(iface.getThisPlayer()).map((option) => {
+													return (<option value={option.uuid}>{option.name}</option>)
+												})
 											: args.map((option) => {
 												return (<option value={option}>{option}</option>)
 											})}
@@ -308,7 +335,7 @@ type PopupInputStateStorage = {
 export interface IPopUpInput {
 	getThisPlayer(): Player;
 	getPlayers(): Player[];
-	getSpacesByPlayer(player: Player): Space[];
+	getSpacesByPlayer(player: Player | undefined): Space[];
 	getSpaces(...spaces: UUID[]): Space[]
 }
 
@@ -407,8 +434,8 @@ export default function PopUpInput({ input_style, onInputCompiled, iface, close,
 	}
 
 	return (
-		<div className="popup-input sticky center-absolute">
-			<div className="absolute exit" onClick={() => { close && close() }}>X</div>
+		<div className="popup-input fixed center-absolute">
+			<div className="absolute close" onClick={() => { close && close() }}>X</div>
 			<div className="flex column align-center">
 				{input_ref.current.map((input, index) => {
 					return parse(input, pushState, iface)
