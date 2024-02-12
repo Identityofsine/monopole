@@ -66,8 +66,8 @@ export class Trader implements ITrader {
 		}
 
 		//swap request and offer
-		source_player.giveMoney(dest_player.takeMoney(trade.request.money));
-		dest_player.giveMoney(source_player.takeMoney(trade.offer.money));
+		this.tcl.award(source_player, dest_player.takeMoney(trade.request.money));
+		this.tcl.award(dest_player, source_player.takeMoney(trade.offer.money));
 
 		giveProperty(dest_player, trade.offer.properties);
 		giveProperty(source_player, trade.request.properties);

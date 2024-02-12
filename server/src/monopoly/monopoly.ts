@@ -69,7 +69,8 @@ export class Monopoly {
 			getPlayer: (uuid: UUID.UUID) => this.getPlayer(uuid),
 			changeOwner: (property: Property | UUID.UUID, player: Player | UUID.UUID) => this.changeOwner(property, player),
 			getProperty: (property: UUID.UUID) => this.getProperty(property),
-			resendDecisions: (player: Player | UUID.UUID) => this.resendDecisions(player)
+			resendDecisions: (player: Player | UUID.UUID) => this.resendDecisions(player),
+			award: (player: Player | UUID.UUID, amount: number) => this.givePlayerMoney(player, amount)
 		}
 	}
 
@@ -400,6 +401,7 @@ export interface TradeCommunicationLayer extends CommunicationLayer {
 	changeOwner(property: Property | UUID.UUID, player: Player | UUID.UUID): Property | undefined;
 	getProperty(property: UUID.UUID): Property | undefined;
 	resendDecisions(player: Player | UUID.UUID): void;
+	award(player: Player | UUID.UUID, amount: number): void;
 }
 
 export interface PlayerCommunicationLayer extends CommunicationLayer {
