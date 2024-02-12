@@ -193,7 +193,7 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 	}
 
 
-	const [target, setTarget] = useState<UUID>('' as UUID);
+	const [target, setTarget] = useState<UUID>('00000' as UUID);
 	useEffect(() => {
 		console.log("target:", target);
 	}, [target])
@@ -218,9 +218,11 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 
 
 		function get_target_player() {
-			console.log("uuid:", target);
-			return iface?.getPlayers().find((player) => player.uuid === target);
+			const player = iface?.getPlayers().find((player) => player.uuid === target);
+			console.log("uuid:%s || ", target, player);
+			return player;
 		}
+
 		for (let i = 0; i < parsed.length; i++) {
 			const word = parsed[i];
 			const type: string = word[0];
