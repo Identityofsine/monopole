@@ -14,7 +14,7 @@ import Board from '../components/board/Board';
 import { ConnectionInterface } from '@/obj/connection';
 import Alert, { AlertFunction, AlertIcon } from '../components/alert/Alert';
 import PopUpInput, { IPopUpInput } from '../components/popup/PopUpInput';
-import { ExpectedInput } from 'shared-types/server.input.types';
+import { ExpectedInput, RequiredInputDecision } from 'shared-types/server.input.types';
 
 
 export type PlayerHoldableSpace = Space & {
@@ -51,9 +51,13 @@ function HomePage() {
 	const [gamestate, setGamestate] = useState<GameState>("INACTIVE");
 	const gamestate_ref = useRef<GameState>(gamestate);
 
+
+	//popup_input state
+	const [popup_input_state, setPopupInputState] = useState<RequiredInputDecision | ''>('');
+
 	//popup window.
 	const popup = (UsePopUp(true));
-	const popup_input = (UsePopUpInput(false));
+	const popup_input = (UsePopUpInput(false, () => setPopupInputState('')));
 	//alert window
 	const alert = Alert();
 
@@ -65,7 +69,17 @@ function HomePage() {
 	const [decisions, setDecisions] = useState<DecisionType[]>([]);
 
 
+	useEffect(() => {
+		if (popup_input_state === '') return;
+		popup_input.open();
+	}, [popup_input_state]);
+
+
 	const game_updater = useRef<GameUpdater>();
+
+	function open_popup_input(type: RequiredInputDecision) {
+		setPopupInputState(type);
+	}
 
 	function copyToClipboard(value: string) {
 		navigator.clipboard.writeText(value);
@@ -146,7 +160,8 @@ function HomePage() {
 	return (
 		<main className={styles.container} >
 
-			<popup_input.element input_style="trade" onInputCompiled={(input: ExpectedInput) => { game_updater.current?.sendDecision('trade', input) }} iface={IPopUpFactory()} />
+			<popup_input.element input_style={popup_input_state} onInputCompiled={(input: ExpectedInput) => { /* game_updater.current?.sendDecision('trade', input) */ console.log(input); }} iface={IPopUpFactory()} />
+
 			<div className={styles.description}>
 				<p>
 					<ReactJson src={text} theme="monokai" collapsed={true} />
@@ -183,10 +198,17 @@ function HomePage() {
 						<span>Money:{getPlayer(uuid.current.player_uuid)?.money}</span>
 						<span
 							style={{ fontSize: '.2rem' }}
-							onClick={() => popup_input.open()}
+							onClick={() => open_popup_input('trade')}
 						>
 							Trade
 						</span>
+						<span
+							style={{ fontSize: '.2rem' }}
+							onClick={() => open_popup_input('build')}
+						>
+							Build
+						</span>
+
 						<span
 							style={{ fontSize: '.2rem' }}
 							onClick={() => copyToClipboard(uuid.current.game_uuid)}

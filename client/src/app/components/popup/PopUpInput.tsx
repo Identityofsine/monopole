@@ -12,7 +12,7 @@ import { DispatchWithResult } from "@/util/GameUpdater";
 import { UUID } from "crypto";
 import { useEffect, useRef, useState } from "react";
 import { Player, Space } from "shared-types";
-import { ExpectedInput, ExpectedInputObject, ExpectedTradeInputObject, InputObject, RequiredInputDecision, isRequiredInputDecision } from "shared-types/server.input.types"
+import { ExpectedBuildingInputObject, ExpectedInput, ExpectedInputObject, ExpectedTradeInputObject, InputObject, RequiredInputDecision, isRequiredInputDecision } from "shared-types/server.input.types"
 import { PopUpProps } from './PopUp';
 
 
@@ -45,9 +45,13 @@ function unnest<T>(arr: T[]): T[] {
 }
 
 function matchInputType(type: RequiredInputDecision): InputObject {
+	console.log(type);
 	switch (type) {
 		case 'trade': {
 			return ExpectedTradeInputObject;
+		}
+		case 'build': {
+			return ExpectedBuildingInputObject;
 		}
 		default: {
 			return ExpectedInputObject;
@@ -97,6 +101,7 @@ enum ParseFlag {
 	IGNORE_SELF = 0x02,
 	ONLY_TARGET = 0x04,
 	TARGETER = 0x08,
+	HIDE = 0x10,
 }
 
 function parse(input: InputField, pushState: (state: PopupInputStateStorage) => void, iface?: IPopUpInput): JSX.Element {
@@ -126,16 +131,19 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 		for (let i = 0; i < word.length; i++) {
 			const char = word[i];
 			if (char.at(0) === '&') {
-				flag |= 0x01;
+				flag |= ParseFlag.SELF_FILL;
 				continue;
 			} else if (char.at(0) === '!') {
-				flag |= 0x02;
+				flag |= ParseFlag.IGNORE_SELF;
 				continue;
 			} else if (char.at(0) === '^') {
-				flag |= 0x04;
+				flag |= ParseFlag.ONLY_TARGET;
 				continue;
 			} else if (char.at(0) === '>') {
-				flag |= 0x08;
+				flag |= ParseFlag.TARGETER;
+				continue;
+			} else if (char.at(0) === '-') {
+				flag |= ParseFlag.HIDE;
 				continue;
 			}
 			if (stack.length === 0) {
@@ -183,9 +191,10 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 
 	function compile_sections(): JSX.Element {
 		return condense_jsx_array(sections.map((section) => {
+			const hide = section.name.at(0) === '-';
 			return (
-				<div className="flex column" style={{ gap: '.1rem' }}>
-					<h3 className="section-title" style={{ margin: '0', padding: '0', fontSize: '.4rem' }}>{section.name}</h3> {/* TODO: MOVE INTO A SCSS FILE */}
+				<div className={`flex column ${hide ? 'hide' : ''}`} style={{ gap: '.1rem' }}>
+					<h3 className="section-title">{section.name}</h3>
 					{condense_jsx_array(section.elements)}
 				</div>
 			)
@@ -228,6 +237,9 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 			const type: string = word[0];
 			const args: string[] = word[1];
 			const flag: ParseFlag = word[2] ?? 0x00;
+			const auto_fill = (flag & ParseFlag.SELF_FILL) > 0;
+			const ignore_self = (flag & ParseFlag.IGNORE_SELF) > 0;
+			const hide = (flag & ParseFlag.HIDE) > 0;
 			switch (type) {
 				case 'string': {
 					const [s_input, setInputState] = useState(args[0] ?? '');
@@ -235,8 +247,8 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 					combine_react_element(
 						craft_div(
 							<>
-								<label style={{ fontSize: 'small' }}>{label}: </label>
-								{flag ? <input type='text' placeholder={label} value={s_input} onChange={(e) => { setInputState(e.target.value) }} disabled /> : <input type='text' placeholder={label} value={s_input} onChange={(e) => { setInputState(e.target.value) }} />}
+								<label style={{ fontSize: 'small' }} hidden={hide}>{label}: </label>
+								{flag ? <input type='text' placeholder={label} value={s_input} onChange={(e) => { setInputState(e.target.value) }} disabled hidden={hide} /> : <input type='text' placeholder={label} value={s_input} onChange={(e) => { setInputState(e.target.value) }} hidden={hide} />}
 							</>
 						)
 					)
@@ -256,8 +268,6 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 					break;
 				}
 				case 'dropdown': {
-					const auto_fill = flag & ParseFlag.SELF_FILL;
-					const ignore_self = flag & ParseFlag.IGNORE_SELF;
 					const targeting_module = flag & ParseFlag.TARGETER;
 					const [d_input, setInputState] = useState(auto_fill ? iface?.getThisPlayer()?.uuid ?? '' : '');
 					useEffect(() => {
@@ -276,8 +286,8 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 					combine_react_element(
 						craft_div.bind(target)(
 							<>
-								<label style={{ fontSize: 'small' }}>{label}: </label>
-								<select value={d_input} onChange={(e) => { setInputState(e.target.value) }} disabled={auto_fill > 0}>
+								<label style={{ fontSize: 'small' }} hidden={hide}>{label}: </label>
+								<select value={d_input} onChange={(e) => { setInputState(e.target.value) }} disabled={auto_fill} hidden={hide}>
 									<option value='' disabled>Select an option</option>
 									{args[0] === 'player' ?
 										iface?.getPlayers().map((option) => {
@@ -302,6 +312,7 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 					break;
 				}
 				default: {
+					console.log("Strange One: ", word);
 					return false;
 				}
 			}
@@ -438,7 +449,7 @@ export default function PopUpInput({ input_style, onInputCompiled, iface, close,
 	return (
 		<div className="popup-input fixed center-absolute">
 			<div className="absolute close" onClick={() => { close && close() }}>X</div>
-			<div className="flex column align-center">
+			<div className="flex column input-gap center-margin fit-width">
 				{input_ref.current.map((input, index) => {
 					return parse(input, pushState, iface)
 				})}

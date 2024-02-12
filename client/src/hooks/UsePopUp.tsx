@@ -41,7 +41,7 @@ function UsePopUp(default_state: boolean): PopUpInterface<JSXChildProps> {
 
 export default UsePopUp;
 
-export function UsePopUpInput(default_state: boolean): PopUpInterface<JSXInputProps> {
+export function UsePopUpInput(default_state: boolean, close_callback?: Dispatch<void>): PopUpInterface<JSXInputProps> {
 	const [open, setOpen] = useState<boolean>(default_state);
 
 	function _open() {
@@ -49,6 +49,7 @@ export function UsePopUpInput(default_state: boolean): PopUpInterface<JSXInputPr
 	}
 	function _close() {
 		setOpen(false);
+		close_callback && close_callback();
 	}
 
 	function render(props: PopUpInputProps) {

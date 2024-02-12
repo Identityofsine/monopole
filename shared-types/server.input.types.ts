@@ -60,10 +60,10 @@ export const ExpectedInputObject: InputObject = {
 }
 
 export const ExpectedTradeInputObject: InputObject = {
-	'decision': '&string[trade]',
+	'-decision': '&string[trade]',
 	'data': {
 		'offer': {
-			'source': '&dropdown[player]',
+			'source': '-&dropdown[player]',
 			'dest': '>!dropdown[player]',
 			'offering': {
 				't_money': 'number',
@@ -73,6 +73,16 @@ export const ExpectedTradeInputObject: InputObject = {
 				'r_money': 'number',
 				'r_spaces': '^dropdown[space]',
 			}
+		}
+	}
+}
+
+export const ExpectedBuildingInputObject: InputObject = {
+	'-decision': '&string[build]',
+	'data': {
+		'property': {
+			'property': 'dropdown[space]',
+			'houses': 'number'
 		}
 	}
 }
