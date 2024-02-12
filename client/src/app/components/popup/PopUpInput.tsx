@@ -407,7 +407,7 @@ export default function PopUpInput({ input_style, onInputCompiled, iface, close,
 	}
 
 	return (
-		<div className="popup-input">
+		<div className="popup-input sticky center-absolute">
 			<div className="absolute exit" onClick={() => { close && close() }}>X</div>
 			<div className="flex column align-center">
 				{input_ref.current.map((input, index) => {
