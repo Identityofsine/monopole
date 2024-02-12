@@ -10,7 +10,7 @@
 import '../../styles/popupinput.scss';
 import { DispatchWithResult } from "@/util/GameUpdater";
 import { UUID } from "crypto";
-import { Dispatch, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Player, Space } from "shared-types";
 import { ExpectedInput, ExpectedInputObject, ExpectedTradeInputObject, InputObject, RequiredInputDecision, isRequiredInputDecision } from "shared-types/server.input.types"
 import { PopUpProps } from './PopUp';
@@ -295,7 +295,7 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 
 }
 
-export type PopUpInputProps = {
+type PopUpInputProps = {
 	input_style: RequiredInputDecision | ''; //expected to be react state
 	onInputCompiled: DispatchWithResult<ExpectedInput, void>;
 	iface?: IPopUpInput;
@@ -312,7 +312,7 @@ export interface IPopUpInput {
 	getSpaces(...spaces: UUID[]): Space[]
 }
 
-export default function PopUpInput({ input_style, onInputCompiled, iface, ...props }: PopUpInputProps) {
+export default function PopUpInput({ input_style, onInputCompiled, iface, close, children }: PopUpInputProps) {
 
 	if (!isRequiredInputDecision(input_style)) {
 		return (<></>)
@@ -407,7 +407,8 @@ export default function PopUpInput({ input_style, onInputCompiled, iface, ...pro
 	}
 
 	return (
-		<div className="popup-input absolute center-absolute">
+		<div className="popup-input">
+			<div className="absolute exit" onClick={() => { close && close() }}>X</div>
 			<div className="flex column align-center">
 				{input_ref.current.map((input, index) => {
 					return parse(input, pushState, iface)
