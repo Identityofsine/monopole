@@ -96,7 +96,8 @@ export class Monopoly {
 			engine_id: this.UUID,
 			getPlayer: (uuid: UUID.UUID) => this.getPlayer(uuid),
 			collect: (player: Player, amount: number) => player.takeMoney(amount),
-			award: (player: Player, amount: number) => this.givePlayerMoney(player, amount)
+			award: (player: Player, amount: number) => this.givePlayerMoney(player, amount),
+			getSpaces: () => this.spaces,
 		}
 	}
 
@@ -418,6 +419,7 @@ export interface TradeCommunicationLayer extends CommunicationLayer {
 
 export interface BuilderCommunicationLayer extends CommunicationLayer {
 	getPlayer(player: UUID.UUID): Player | undefined;
+	getSpaces(): Space[];
 	collect(player: Player, amount: number): number;
 	award(player: Player, amount: number): void;
 }

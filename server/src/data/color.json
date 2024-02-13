@@ -3,43 +3,50 @@
       {
         "id": 0,
         "colorName": "Brown",
-				"hex": "#955436"
+				"hex": "#955436",
+				"max": 2
       },
       {
         "id": 1,
         "colorName": "Light Blue",
-				"hex": "#aae0fc"
+				"hex": "#aae0fc",
+				"max": 3
       },
       {
         "id": 2,
         "colorName": "Pink",
-				"hex": "#d93a96"
+				"hex": "#d93a96",
+				"max": 3
       },
       {
         "id": 3,
         "colorName": "Orange",
-				"hex": "#f7941f"
+				"hex": "#f7941f",
+				"max": 3
       },
       {
         "id": 4,
         "colorName": "Red",
-				"hex": "#ed1b26"
+				"hex": "#ed1b26",
+				"max": 3
       },
       {
         "id": 5,
         "colorName": "Yellow", 
-				"hex": "#fef200"
+				"hex": "#fef200",
+				"max": 3
       },
       {
         "id": 6,
         "colorName": "Green",
-				"hex": "#1fb25a"
+				"hex": "#1fb25a",
+				"max": 3
       },
       {
         "id": 7,
         "colorName": "Blue",
-				"hex": "#0072bb"
-
+				"hex": "#0072bb",
+				"max": 2
       },
       {
         "id": 8,

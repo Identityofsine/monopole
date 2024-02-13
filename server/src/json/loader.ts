@@ -34,7 +34,8 @@ export function loadObjectFromPath<T>(path: string): T | null {
 type ColorJSON = {
 	"id": number,
 	"colorName": string,
-	"hex": string
+	"hex": string,
+	"max": number,
 }
 
 type ColorFileJSON = {
@@ -44,7 +45,8 @@ type ColorFileJSON = {
 function castColor(color_preobject: ColorJSON): Color {
 	return {
 		name: color_preobject.colorName,
-		hex: color_preobject.hex
+		hex: color_preobject.hex,
+		max: color_preobject.max
 	}
 }
 
@@ -56,7 +58,7 @@ export function castSpace(square_preobject: Space, buildingCommunicationLayer?: 
 		case 1: {
 			const colors = cachePath<ColorFileJSON>('./src/data/color.json');
 			const street = square_preobject as Street;
-			return new Street(street.id, street.name, street.price, street.rent, street?.group, colors.groups[street?.group] ? castColor(colors.groups[street.group]) : street.color);
+			return new Street(street.id, street.name, street.price, street.rent, street?.group, colors.groups[street?.group] ? castColor(colors.groups[street.group]) : street.color, street.house_cost);
 		}
 		case 2: {
 			const community_chest = square_preobject as CommunityChest;
@@ -96,6 +98,7 @@ export function cachePath<T>(path: string): T {
 	if (!cache.has(path)) {
 		const object = loadObjectFromPath(path);
 		cache.set(path, object);
+		console.log(`[cache]:Cached ${path}`);
 	}
 
 	return cache.get(path) as T;

@@ -10,6 +10,7 @@ export type Rent = number[];
 export type Color = {
 	name: string;
 	hex: string;
+	max: number;
 }
 
 export abstract class Space extends Identifiable {
@@ -79,7 +80,7 @@ export class Property extends Space {
 		if (this.owner === null) {
 			return this.m_landinformationFactory(player, true, ['buy'])
 		} else if (this.owner === player.UUID) {
-			return this.m_landinformationFactory(player, true, ['sell', 'mortgage', 'build', 'demolish'])
+			return this.m_landinformationFactory(player, true, ['ignore'])
 		} else {
 			const collection = this.useCommunicationLayer().collect(player, this.price);
 			const owner = this.useCommunicationLayer().getPlayer(this.owner);
@@ -118,6 +119,25 @@ export class Street extends Property {
 			this.houses++;
 		} else {
 			throw new MonopolyError('Max houses reached');
+		}
+	}
+
+	public onLand(player: Player): LandInformation {
+		if (this.owner === null) {
+			return this.m_landinformationFactory(player, true, ['buy'])
+		} else if (this.owner === player.UUID) {
+			return this.m_landinformationFactory(player, true, ['ignore'])
+		} else {
+			const rent = this.rent[this.houses];
+			const collection = this.useCommunicationLayer().collect(player, rent);
+			const owner = this.useCommunicationLayer().getPlayer(this.owner);
+			if (owner === undefined) throw new MonopolyError('Owner not found')
+			this.useCommunicationLayer().award(this.owner, collection);
+
+			player.notify({ type: NotificationType.INFO, message: 'STATUS_UPDATE' });
+			owner.notify({ type: NotificationType.INFO, message: 'STATUS_UPDATE' });
+
+			return this.m_landinformationFactory(player, true);
 		}
 	}
 
