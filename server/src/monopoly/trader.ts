@@ -98,7 +98,10 @@ export class Trader implements ITrader {
 			return undefined;
 		}
 		const trade = this.trades[index];
+		const source_player = this.tcl.getPlayer(trade.source);
 		this.trades.splice(index, 1);
+		if (source_player)
+			this.tcl.resendDecisions(source_player);
 		return trade;
 	}
 
