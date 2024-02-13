@@ -4,7 +4,7 @@
 */
 
 import { Player } from "shared-types";
-import { Property } from "./space";
+import { Property, Street } from "./space";
 
 interface IBuilder {
 	buildHouse(property: Property, player: Player): boolean;
@@ -13,15 +13,28 @@ interface IBuilder {
 
 export class Builder implements IBuilder {
 
-	public buildHouse(property: Property, player: Player): boolean {
-
-		//TODO: Implement buildHouse 
-		return false;
+	private playerOwnsPropety(player: Player, property: Property): boolean {
+		return property._owner === player.uuid;
 	}
 
-	public mortgageHouse(property: Property, player: Player): boolean {
-		//TODO: Implement mortgageHouse
-		return false;
+	public buildHouse(property: Street, player: Player): boolean {
+		if (this.playerOwnsPropety(player, property)) {
+			//TODO: Implement buildHouse 
+
+			return true;
+		} else {
+
+			return false;
+		}
+	}
+
+	public mortgageHouse(property: Street, player: Player): boolean {
+		if (this.playerOwnsPropety(player, property)) {
+			//TODO: Implement mortgageHouse
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 }

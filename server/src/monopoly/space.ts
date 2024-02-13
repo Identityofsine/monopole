@@ -97,9 +97,31 @@ export class Property extends Space {
 
 export class Street extends Property {
 
-	constructor(public readonly id: number, public readonly name: string, public readonly price: number, public readonly rent: Rent, public readonly group: number, public readonly color: Color) {
+	private houses: number = 0;
+	private hotels: number = 0;
+
+	constructor(public readonly id: number, public readonly name: string, public readonly price: number, public readonly rent: Rent, public readonly group: number, public readonly color: Color, public readonly house_cost = 0) {
 		super(id, name, 1, price);
 	}
+
+	public getHouseCount(): number {
+		return this.houses;
+	}
+
+	public getHotelCount(): number {
+		return this.hotels;
+	}
+
+	public buildHouse(player: Player): void {
+		if (this.houses < 4) {
+			this.useCommunicationLayer().collect(player, this.house_cost);
+			this.houses++;
+		} else {
+			throw new MonopolyError('Max houses reached');
+		}
+	}
+
+
 
 }
 
