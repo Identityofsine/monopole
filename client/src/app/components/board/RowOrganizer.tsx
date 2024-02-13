@@ -74,6 +74,7 @@ function RowOrganizer(props: RowOrganizerProps) {
 				price: space?.price ?? 0,
 				color: space?.color ?? { name: 'white', hex: '#ffffff' },
 				players: space.players,
+				houses: space?.houses ?? 0,
 				owner: space?._owner
 			}
 			if (idx < 11) {

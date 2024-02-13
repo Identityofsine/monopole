@@ -1,11 +1,14 @@
 import { SpaceProps } from "./types";
 import '../../styles/spaces.scss';
 import Piece from "./Piece";
+import { House } from "./House";
 
 /**
  * @summary This shouldn't be used outside of the board component, this should be used to create a space on the board.
  */
 function Space(props: SpaceProps) {
+
+	console.log(props.houses);
 
 	return (
 		<div className={`space ${(props.vertical ?? false) ? 'vertical' : ''} ${(props.big ?? false) ? 'big' : ''} ${(props?.owner && 'owned') ?? ''} relative flex column`}>
@@ -20,6 +23,11 @@ function Space(props: SpaceProps) {
 						color={{ name: "Blue", hex: "#0000FF" }}
 						key={idx}
 					/>
+				))}
+			</div>
+			<div className="homes flex justify-center">
+				{Array.from(Array(props?.houses ?? 0), (_, idx) => (
+					<House key={idx} />
 				))}
 			</div>
 			<div

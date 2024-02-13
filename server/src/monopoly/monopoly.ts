@@ -5,6 +5,7 @@ import { Player } from "./player";
 import { Property, Space } from "./space";
 import { MonopolyEngineCommands, MonopolyInterface } from "./types";
 import { ITrader, Trader } from "./trader";
+import { Builder, IBuilder } from "./builder";
 
 export class Pair {
 	dice1: number;
@@ -30,6 +31,7 @@ export class Monopoly {
 	private players: Player[] = [];
 	private spaces: Space[];
 	private trader: ITrader;
+	private builder: IBuilder;
 	private wait: WaitObject = {
 		waiting: false,
 		who: '',
@@ -45,6 +47,7 @@ export class Monopoly {
 			space.setCommunicationLayer(this.m_BCLFactory(space));
 		})
 		this.trader = new Trader(this.m_TCLFactory());
+		this.builder = new Builder(this.m_BuilderCLFactory());
 		console.log('[monopoly] created new game with id %s', this.UUID);
 	}
 
@@ -85,6 +88,15 @@ export class Monopoly {
 			award: (player: Player | UUID.UUID, amount: number) => this.givePlayerMoney(player, amount),
 			mortgage: (player: Player) => { /*...*/ },
 			unmortgage: (player: Player) => { /*...*/ },
+		}
+	}
+
+	public m_BuilderCLFactory(): BuilderCommunicationLayer {
+		return {
+			engine_id: this.UUID,
+			getPlayer: (uuid: UUID.UUID) => this.getPlayer(uuid),
+			collect: (player: Player, amount: number) => player.takeMoney(amount),
+			award: (player: Player, amount: number) => this.givePlayerMoney(player, amount)
 		}
 	}
 
@@ -402,6 +414,12 @@ export interface TradeCommunicationLayer extends CommunicationLayer {
 	getProperty(property: UUID.UUID): Property | undefined;
 	resendDecisions(player: Player | UUID.UUID): void;
 	award(player: Player | UUID.UUID, amount: number): void;
+}
+
+export interface BuilderCommunicationLayer extends CommunicationLayer {
+	getPlayer(player: UUID.UUID): Player | undefined;
+	collect(player: Player, amount: number): number;
+	award(player: Player, amount: number): void;
 }
 
 export interface PlayerCommunicationLayer extends CommunicationLayer {

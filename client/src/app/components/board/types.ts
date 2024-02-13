@@ -11,6 +11,7 @@ export type SpaceProps = {
 	name: string;
 	owner?: string
 	players: Player[];
+	houses: number;
 	price: number;
 	color: Color;
 	vertical?: boolean;

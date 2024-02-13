@@ -25,6 +25,7 @@ export type Space = Identifiable & {
 	_owner?: UUID; //player id
 	owner?: string; //player name
 	color?: Color;
+	houses?: number;
 	buildings?: number;
 	onLand?: (...args: any) => void;
 }
