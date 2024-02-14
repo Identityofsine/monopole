@@ -10,7 +10,7 @@
 import '../../styles/popupinput.scss';
 import { DispatchWithResult } from "@/util/GameUpdater";
 import { UUID } from "crypto";
-import { useEffect, useRef, useState } from "react";
+import { Dispatch, useEffect, useRef, useState } from "react";
 import { Player, Space } from "shared-types";
 import { ExpectedBuildingInputObject, ExpectedInput, ExpectedInputObject, ExpectedTradeInputObject, InputObject, RequiredInputDecision, isRequiredInputDecision } from "shared-types/server.input.types"
 import { PopUpProps } from './PopUp';
@@ -21,6 +21,10 @@ import { Functional } from '@/util/FunctionalUtil';
 type InputField = {
 	type: string;
 	label: string;
+}
+
+type PopupInputStateStorage = {
+	[key: string]: string | number | boolean;
 }
 
 //recursive function to flatten array
@@ -60,7 +64,9 @@ function matchInputType(type: RequiredInputDecision): InputObject {
 	}
 }
 
-function convert(input: RequiredInputDecision) {
+function convert(input: RequiredInputDecision | '') {
+
+	if (input === '') return [];
 
 	//recursive function to flatten object
 	function helper(object: typeof ExpectedInputObject): InputField[] {
@@ -104,6 +110,112 @@ enum ParseFlag {
 	TARGETER = 0x08,
 	HIDE = 0x10,
 }
+
+
+type InputElementProps<T> = {
+	hidden?: boolean;
+	auto_fill?: boolean;
+	label: string;
+	value: T;
+	pushState: (state: PopupInputStateStorage) => void;
+	craft_div: (children: JSX.Element) => JSX.Element;
+}
+
+type StringInputProps = InputElementProps<string> & {
+
+};
+
+type NumberInputProps = InputElementProps<number> & {
+};
+
+type DropdownInputProps = InputElementProps<string> & {
+	targeting_module: ParseFlag;
+	iface: IPopUpInput;
+	setTarget: Dispatch<UUID>;
+};
+
+function StringInput({ label, value, hidden, auto_fill, pushState, craft_div }: StringInputProps) {
+
+	const [s_input, setInputState] = useState(value ?? '');
+	pushState({ [label]: s_input });
+
+	return craft_div(
+		<>
+			<label style={{ fontSize: 'small' }} hidden={hidden}>{label}: </label>
+			{
+				auto_fill
+					?
+					<input type='text' placeholder={label} value={s_input} onChange={(e) => { setInputState(e.target.value) }} disabled hidden={hidden} />
+					:
+					<input type='text' placeholder={label} value={s_input} onChange={(e) => { setInputState(e.target.value) }} hidden={hidden} />
+			}
+		</>
+
+	)
+}
+
+function NumberInput({ label, value, hidden, auto_fill, pushState, craft_div }: NumberInputProps) {
+	const [n_input, setInputState] = useState(isNaN(value) ? 0 : value);
+	pushState({ [label]: n_input });
+	return craft_div(
+		<>
+			<label style={{ fontSize: 'small' }} hidden={hidden}>{label}: </label>
+			{
+				auto_fill
+					?
+					<input type='number' placeholder={label} value={n_input} onChange={(e) => { setInputState(parseInt(e.target.value)) }} disabled hidden={hidden} />
+					:
+					<input type='number' placeholder={label} value={n_input} onChange={(e) => { setInputState(parseInt(e.target.value)) }} hidden={hidden} />
+			}
+		</>
+
+	)
+}
+
+function DropdownInput({ label, value, hidden, auto_fill, pushState, craft_div, iface, targeting_module, setTarget }: DropdownInputProps) {
+	const [d_input, setInputState] = useState(auto_fill ? iface?.getThisPlayer()?.uuid ?? '' : '');
+	useEffect(() => {
+		if (!iface || d_input !== '') return;
+		setInputState(auto_fill ? iface?.getThisPlayer()?.uuid ?? '' : '');
+		return () => { }
+	}, [iface])
+	useEffect(() => {
+		if (targeting_module === 8 && d_input !== '') {
+			setTarget(d_input as UUID);
+		}
+	}, [d_input])
+
+
+	pushState({ [label]: d_input });
+
+	return craft_div(<>
+		<label style={{ fontSize: 'small' }} hidden={hide}>{label}: </label>
+		<select value={d_input} onChange={(e) => { setInputState(e.target.value) }} disabled={auto_fill} hidden={hide}>
+			<option value='' disabled>Select an option</option>
+			{args[0] === 'player' ?
+				iface?.getPlayers().map((option) => {
+					if (ignore_self && option.uuid === iface?.getThisPlayer()?.uuid) return;
+					return (<option value={option.uuid}>{option.name}</option>)
+				})
+				: args[0] === 'space' ?
+					flag & ParseFlag.ONLY_TARGET
+						? iface?.getSpacesByPlayer(get_target_player()).map((option) => {
+							return (<option key={target} value={option.uuid}>{option.name}</option>)
+						})
+						: iface?.getSpacesByPlayer(iface.getThisPlayer()).map((option) => {
+							return (<option value={option.uuid}>{option.name}</option>)
+						})
+					: args[0] === 'space_set' ?
+						Functional.getSpaceSetOwnedByPlayer(iface?.getSpacesByPlayer(iface.getThisPlayer()) || [], iface?.getThisPlayer().uuid || '').map((option) => {
+							return (<option value={option.uuid}>{option.name}</option>)
+						})
+						: args.map((option) => {
+							return (<option value={option}>{option}</option>)
+						})}
+		</select>
+	</>)
+}
+
 
 function useParse(input: InputField, pushState: (state: PopupInputStateStorage) => void, iface?: IPopUpInput): JSX.Element {
 
@@ -194,7 +306,7 @@ function useParse(input: InputField, pushState: (state: PopupInputStateStorage) 
 		return condense_jsx_array(sections.map((section) => {
 			const hide = section.name.at(0) === '-';
 			return (
-				<div className={`flex column ${hide ? 'hide' : ''}`} style={{ gap: '.1rem' }}>
+				<div className={`flex column ${hide ? 'hide' : ''}`} style={{ gap: '.1rem' }} key={'key'}>
 					<h3 className="section-title">{section.name}</h3>
 					{condense_jsx_array(section.elements)}
 				</div>
@@ -243,75 +355,23 @@ function useParse(input: InputField, pushState: (state: PopupInputStateStorage) 
 			const hide = (flag & ParseFlag.HIDE) > 0;
 			switch (type) {
 				case 'string': {
-					const [s_input, setInputState] = useState(args[0] ?? '');
-					pushState({ [label]: s_input });
 					combine_react_element(
-						craft_div(
-							<>
-								<label style={{ fontSize: 'small' }} hidden={hide}>{label}: </label>
-								{flag ? <input type='text' placeholder={label} value={s_input} onChange={(e) => { setInputState(e.target.value) }} disabled hidden={hide} /> : <input type='text' placeholder={label} value={s_input} onChange={(e) => { setInputState(e.target.value) }} hidden={hide} />}
-							</>
-						)
+						<StringInput value={args[0]} hidden={hide} auto_fill={auto_fill} label={label ?? ''} pushState={pushState} craft_div={craft_div} />
 					)
 					break;
 				}
 				case 'number': {
-					const [n_input, setInputState] = useState(0);
-					pushState({ [label]: n_input });
 					combine_react_element(
-						craft_div(
-							<>
-								<label style={{ fontSize: 'small' }}>{label}: </label>
-								<input type='number' placeholder={label} value={n_input} onChange={(e) => { setInputState(parseInt(e.target.value)) }} />
-							</>
-						)
+						<NumberInput value={parseInt(args[0])} hidden={hide} auto_fill={auto_fill} label={label ?? ''} pushState={pushState} craft_div={craft_div} />
 					)
 					break;
 				}
 				case 'dropdown': {
+
 					const targeting_module = flag & ParseFlag.TARGETER;
-					const [d_input, setInputState] = useState(auto_fill ? iface?.getThisPlayer()?.uuid ?? '' : '');
-					useEffect(() => {
-						if (!iface || d_input !== '') return;
-						setInputState(auto_fill ? iface?.getThisPlayer()?.uuid ?? '' : '');
-						return () => { }
-					}, [iface])
-					useEffect(() => {
-						if (targeting_module === 8 && d_input !== '') {
-							setTarget(d_input as UUID);
-						}
-					}, [d_input])
-
-
-					pushState({ [label]: d_input });
 					combine_react_element(
 						craft_div.bind(target)(
-							<>
-								<label style={{ fontSize: 'small' }} hidden={hide}>{label}: </label>
-								<select value={d_input} onChange={(e) => { setInputState(e.target.value) }} disabled={auto_fill} hidden={hide}>
-									<option value='' disabled>Select an option</option>
-									{args[0] === 'player' ?
-										iface?.getPlayers().map((option) => {
-											if (ignore_self && option.uuid === iface?.getThisPlayer()?.uuid) return;
-											return (<option value={option.uuid}>{option.name}</option>)
-										})
-										: args[0] === 'space' ?
-											flag & ParseFlag.ONLY_TARGET
-												? iface?.getSpacesByPlayer(get_target_player()).map((option) => {
-													return (<option key={target} value={option.uuid}>{option.name}</option>)
-												})
-												: iface?.getSpacesByPlayer(iface.getThisPlayer()).map((option) => {
-													return (<option value={option.uuid}>{option.name}</option>)
-												})
-											: args[0] === 'space_set' ?
-												Functional.getSpaceSetOwnedByPlayer(iface?.getSpacesByPlayer(iface.getThisPlayer()) || [], iface?.getThisPlayer().uuid || '').map((option) => {
-													return (<option value={option.uuid}>{option.name}</option>)
-												})
-												: args.map((option) => {
-													return (<option value={option}>{option}</option>)
-												})}
-								</select>
-							</>
+
 						)
 					)
 					break;
@@ -346,9 +406,6 @@ type PopUpInputProps = {
 	iface?: IPopUpInput;
 } & PopUpProps;
 
-type PopupInputStateStorage = {
-	[key: string]: string | number | boolean;
-}
 
 export interface IPopUpInput {
 	getThisPlayer(): Player;
@@ -359,12 +416,12 @@ export interface IPopUpInput {
 
 export default function PopUpInput({ input_style, onInputCompiled, iface, close, children }: PopUpInputProps) {
 
+	const input_ref = useRef<InputField[]>(convert(input_style));
+	const states = useRef<PopupInputStateStorage[]>([]);
+
 	if (!isRequiredInputDecision(input_style)) {
 		return (<></>)
 	}
-
-	const input_ref = useRef<InputField[]>(convert(input_style));
-	const states = useRef<PopupInputStateStorage[]>([]);
 
 	function compile_data() {
 
