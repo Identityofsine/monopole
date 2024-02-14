@@ -81,7 +81,7 @@ export const ExpectedBuildingInputObject: InputObject = {
 	'-decision': '&string[build]',
 	'data': {
 		'property': {
-			'property': 'dropdown[space]',
+			'property': 'dropdown[space_set]',
 			'houses': 'number'
 		}
 	}

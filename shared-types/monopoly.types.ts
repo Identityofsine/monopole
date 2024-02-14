@@ -11,6 +11,7 @@ declare type Identifiable = {
 type Color = {
 	name: string;
 	hex: string;
+	max: number;
 }
 
 export type Player = Identifiable & {

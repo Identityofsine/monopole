@@ -5,6 +5,7 @@ import { DecisionType, Player, UUID } from "shared-types";
 export type Color = {
 	name: string;
 	hex: string;
+	max?: number;
 };
 
 export type SpaceProps = {

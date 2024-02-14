@@ -14,6 +14,7 @@ import { useEffect, useRef, useState } from "react";
 import { Player, Space } from "shared-types";
 import { ExpectedBuildingInputObject, ExpectedInput, ExpectedInputObject, ExpectedTradeInputObject, InputObject, RequiredInputDecision, isRequiredInputDecision } from "shared-types/server.input.types"
 import { PopUpProps } from './PopUp';
+import { Functional } from '@/util/FunctionalUtil';
 
 
 //typescript function thats going to go crazy...
@@ -302,9 +303,13 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 												: iface?.getSpacesByPlayer(iface.getThisPlayer()).map((option) => {
 													return (<option value={option.uuid}>{option.name}</option>)
 												})
-											: args.map((option) => {
-												return (<option value={option}>{option}</option>)
-											})}
+											: args[0] === 'space_set' ?
+												Functional.getSpaceSetOwnedByPlayer(iface?.getSpacesByPlayer(iface.getThisPlayer()) || [], iface?.getThisPlayer().uuid || '').map((option) => {
+													return (<option value={option.uuid}>{option.name}</option>)
+												})
+												: args.map((option) => {
+													return (<option value={option}>{option}</option>)
+												})}
 								</select>
 							</>
 						)
