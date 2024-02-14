@@ -4,7 +4,6 @@ import '../style.scss';
 import useConnectionObject from '@/hooks/ConnectionObject';
 import { useEffect, useRef, useState } from 'react';
 import { DataEvent, ErrorEvent } from '@/interface/events';
-import ReactJson from 'react-json-view';
 import RowOrganizer from '../components/board/RowOrganizer';
 import { BaseIntent, BaseResponse, DecisionType, GameResponse, Identifiable, Player, Space, UUID } from 'shared-types';
 import { GameHandler, GameState, GameUpdater, ISource, SpaceHandle } from '@/util/GameUpdater';
@@ -15,6 +14,7 @@ import { ConnectionInterface } from '@/obj/connection';
 import Alert, { AlertFunction, AlertIcon } from '../components/alert/Alert';
 import PopUpInput, { IPopUpInput } from '../components/popup/PopUpInput';
 import { ExpectedInput, RequiredInputDecision } from 'shared-types/server.input.types';
+import dynamic from 'next/dynamic';
 
 
 export type PlayerHoldableSpace = Space & {
@@ -38,6 +38,7 @@ export interface ICClient extends ConnectionInterface {
 function HomePage() {
 
 	const connection = useConnectionObject("ws://localhost:8337/");
+	const DynamicReactJson = dynamic(import('react-json-view'), { ssr: false });
 
 	//debug
 	const [text, setText] = useState<object[]>([]);
@@ -168,7 +169,7 @@ function HomePage() {
 
 			<div className={styles.description}>
 				<p>
-					<ReactJson src={text} theme="monokai" collapsed={true} />
+					<DynamicReactJson src={text} theme="monokai" collapsed={true} />
 				</p>
 				<div>
 				</div>

@@ -34,7 +34,7 @@ function Board({ decisions, iface, spaces, inTurn, main_player }: BoardProps) {
 	function decisionLogic() {
 		if (decisions === undefined) return <></>
 		return decisions.map((decision, _index) => (
-			<h2 className="pointer" onClick={() => { iface.sendDecision(decision) }}>{decision}</h2>
+			<h2 className="pointer" key={`${decision}-${_index}`} onClick={() => { iface.sendDecision(decision) }}>{decision}</h2>
 		))
 	}
 
