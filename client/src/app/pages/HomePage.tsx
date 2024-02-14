@@ -37,7 +37,7 @@ export interface ICClient extends ConnectionInterface {
 
 function HomePage() {
 
-	const connection = useConnectionObject("ws://localhost:8337/");
+	const connection = useConnectionObject("ws://fofx.zip/mserver/");
 	const DynamicReactJson = dynamic(import('react-json-view'), { ssr: false });
 
 	//debug
@@ -163,7 +163,6 @@ function HomePage() {
 		<main className={styles.container} >
 
 			<popup_input.element input_style={popup_input_state} onInputCompiled={(input: ExpectedInput) => {
-				console.log(input);
 				game_updater.current?.sendDecision('trade', input)
 			}} iface={IPopUpFactory()} />
 
