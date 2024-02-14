@@ -105,7 +105,7 @@ enum ParseFlag {
 	HIDE = 0x10,
 }
 
-function parse(input: InputField, pushState: (state: PopupInputStateStorage) => void, iface?: IPopUpInput): JSX.Element {
+function useParse(input: InputField, pushState: (state: PopupInputStateStorage) => void, iface?: IPopUpInput): JSX.Element {
 
 
 	function extract_keywords(word: string, category?: string): ParseKeywordObject | ParseKeywordObject[] {
@@ -208,7 +208,7 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 		console.log("target:", target);
 	}, [target])
 
-	function compile_input(parsed_obj: ParseKeywordObject): boolean {
+	function Compile_input(parsed_obj: ParseKeywordObject): boolean {
 		if (!parsed_obj?.value || !parsed_obj?.value?.parsed) return (false);
 		const label = parsed_obj.value.label;
 		const parsed = parsed_obj.value.parsed;
@@ -333,7 +333,7 @@ function parse(input: InputField, pushState: (state: PopupInputStateStorage) => 
 		keyword = [keyword];
 	}
 	keyword.forEach((word) => {
-		compile_input(word);
+		Compile_input(word);
 	});
 
 	return compile_sections();
@@ -456,7 +456,7 @@ export default function PopUpInput({ input_style, onInputCompiled, iface, close,
 			<div className="absolute close" onClick={() => { close && close() }}>X</div>
 			<div className="flex column input-gap center-margin fit-width">
 				{input_ref.current.map((input, index) => {
-					return parse(input, pushState, iface)
+					return useParse(input, pushState, iface)
 				})}
 				<button onClick={() => { compile_data() }}>Submit</button>
 			</div>

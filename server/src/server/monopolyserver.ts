@@ -239,7 +239,7 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 		if (game.engine.HostID !== player_id) throw new MonopolyError('Player is not host');
 		if (command === 'start') {
 			game.engine.start();
-			this.broadcast(game, MessageFactory.createUpdate('Game started'));
+			this.broadcast(game, MessageFactory.createMessage('Game has started', 'GENERAL_MESSAGE'));
 		}
 	}
 
@@ -273,14 +273,18 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 			event.ws.send(JSON.stringify(MessageFactory.createConnect('Connected to server')));
 		});
 		this.instance.on('message', (event) => {
-			const data = ServerInstance.safeParse(event.data) as BaseIntent;
-			if (data.intent === 'create' || data.intent === 'join') {
-				this.m_connectionStage(event.ws, data as ConnectionIntent);
-			}
-			else if (data.intent === 'response') {
-				this.m_responseStage(data as ResponseIntent, event.ws);
-			} else if (data.intent === 'command') {
-				this.m_handleHostCommand(data as CommandIntent);
+			try {
+				const data = ServerInstance.safeParse(event.data) as BaseIntent;
+				if (data.intent === 'create' || data.intent === 'join') {
+					this.m_connectionStage(event.ws, data as ConnectionIntent);
+				}
+				else if (data.intent === 'response') {
+					this.m_responseStage(data as ResponseIntent, event.ws);
+				} else if (data.intent === 'command') {
+					this.m_handleHostCommand(data as CommandIntent);
+				}
+			} catch (e) {
+				console.log('[monopolyserver] error: ', e);
 			}
 		});
 	}

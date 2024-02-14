@@ -37,7 +37,7 @@ export interface ICClient extends ConnectionInterface {
 
 function HomePage() {
 
-	const connection = useConnectionObject("ws://localhost:8337/");
+	const connection = useConnectionObject("ws://fofx.zip/mserver/");
 
 	//debug
 	const [text, setText] = useState<object[]>([]);
