@@ -14,6 +14,11 @@ export namespace Functional {
 		return spaces.filter((space) => space?.color?.hex === color.hex);
 	}
 
+	/**
+		* @summary This function will return the sets that are owned by the player.
+		* @param {Space[]} spaces - the spaces to filter 
+		* @returns {Space[]} - the spaces that are owned (if all are available in a set.)
+		*/
 	export function getSpaceSetOwnedByPlayer(spaces: Space[], player_id: UUID.UUID): Space[] {
 		type SpaceSet = {
 			color: Color;
@@ -55,7 +60,6 @@ export namespace Functional {
 			}
 		}
 
-		console.log(sets);
 		return sets.map((set) => set.spaces).flat();
 	}
 
