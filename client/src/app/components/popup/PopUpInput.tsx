@@ -130,8 +130,13 @@ type NumberInputProps = InputElementProps<number> & {
 
 type DropdownInputProps = InputElementProps<string> & {
 	targeting_module: ParseFlag;
-	iface: IPopUpInput;
+	iface?: IPopUpInput;
 	setTarget: Dispatch<UUID>;
+	ignore_self: boolean;
+	get_target_player: DispatchWithResult<void, Player | undefined>;
+	only_target: boolean;
+	target: UUID;
+	args: string[];
 };
 
 function StringInput({ label, value, hidden, auto_fill, pushState, craft_div }: StringInputProps) {
@@ -172,7 +177,7 @@ function NumberInput({ label, value, hidden, auto_fill, pushState, craft_div }: 
 	)
 }
 
-function DropdownInput({ label, value, hidden, auto_fill, pushState, craft_div, iface, targeting_module, setTarget }: DropdownInputProps) {
+function DropdownInput({ label, value, hidden, auto_fill, pushState, craft_div, iface, targeting_module, setTarget, ignore_self, only_target, get_target_player, target, args }: DropdownInputProps) {
 	const [d_input, setInputState] = useState(auto_fill ? iface?.getThisPlayer()?.uuid ?? '' : '');
 	useEffect(() => {
 		if (!iface || d_input !== '') return;
@@ -189,35 +194,40 @@ function DropdownInput({ label, value, hidden, auto_fill, pushState, craft_div, 
 	pushState({ [label]: d_input });
 
 	return craft_div(<>
-		<label style={{ fontSize: 'small' }} hidden={hide}>{label}: </label>
-		<select value={d_input} onChange={(e) => { setInputState(e.target.value) }} disabled={auto_fill} hidden={hide}>
+		<label style={{ fontSize: 'small' }} hidden={hidden}>{label}: </label>
+		<select value={d_input} onChange={(e) => { setInputState(e.target.value) }} disabled={auto_fill} hidden={hidden}>
 			<option value='' disabled>Select an option</option>
-			{args[0] === 'player' ?
+			{value === 'player' ?
 				iface?.getPlayers().map((option) => {
 					if (ignore_self && option.uuid === iface?.getThisPlayer()?.uuid) return;
-					return (<option value={option.uuid}>{option.name}</option>)
+					return (<option value={option.uuid} key={option.uuid}>{option.name}</option>)
 				})
-				: args[0] === 'space' ?
-					flag & ParseFlag.ONLY_TARGET
+				: value === 'space' ?
+					target
 						? iface?.getSpacesByPlayer(get_target_player()).map((option) => {
-							return (<option key={target} value={option.uuid}>{option.name}</option>)
+							return (<option key={option.uuid} value={option.uuid}>{option.name}</option>)
 						})
 						: iface?.getSpacesByPlayer(iface.getThisPlayer()).map((option) => {
-							return (<option value={option.uuid}>{option.name}</option>)
+							return (<option key={option.uuid} value={option.uuid}>{option.name}</option>)
 						})
-					: args[0] === 'space_set' ?
+					: value === 'space_set' ?
 						Functional.getSpaceSetOwnedByPlayer(iface?.getSpacesByPlayer(iface.getThisPlayer()) || [], iface?.getThisPlayer().uuid || '').map((option) => {
-							return (<option value={option.uuid}>{option.name}</option>)
+							return (<option key={option.uuid} value={option.uuid}>{option.name}</option>)
 						})
-						: args.map((option) => {
-							return (<option value={option}>{option}</option>)
+						: args.map((option, idx) => {
+							return (<option key={option} value={option}>{option}</option>)
 						})}
 		</select>
 	</>)
 }
 
+type ParseProps = {
+	input: InputField;
+	pushState: (state: PopupInputStateStorage) => void;
+	iface?: IPopUpInput;
+}
 
-function useParse(input: InputField, pushState: (state: PopupInputStateStorage) => void, iface?: IPopUpInput): JSX.Element {
+function Parse({ input, pushState, iface }: ParseProps): JSX.Element {
 
 
 	function extract_keywords(word: string, category?: string): ParseKeywordObject | ParseKeywordObject[] {
@@ -370,9 +380,7 @@ function useParse(input: InputField, pushState: (state: PopupInputStateStorage) 
 
 					const targeting_module = flag & ParseFlag.TARGETER;
 					combine_react_element(
-						craft_div.bind(target)(
-
-						)
+						<DropdownInput value={args[0]} hidden={hide} auto_fill={auto_fill} label={label ?? ''} pushState={pushState} craft_div={craft_div} iface={iface} targeting_module={targeting_module} setTarget={setTarget} ignore_self={ignore_self} only_target={(flag & ParseFlag.ONLY_TARGET) > 0} get_target_player={get_target_player} target={target} args={args} />
 					)
 					break;
 				}
@@ -513,7 +521,7 @@ export default function PopUpInput({ input_style, onInputCompiled, iface, close,
 			<div className="absolute close" onClick={() => { close && close() }}>X</div>
 			<div className="flex column input-gap center-margin fit-width">
 				{input_ref.current.map((input, index) => {
-					return useParse(input, pushState, iface)
+					return <Parse key={`${input.label}-${index}`} input={input} pushState={pushState} iface={iface} />
 				})}
 				<button onClick={() => { compile_data() }}>Submit</button>
 			</div>
