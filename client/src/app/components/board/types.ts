@@ -26,5 +26,7 @@ export type PieceProps = {
 export type BoardProps = {
 	spaces: PlayerHoldableSpace[];
 	decisions: DecisionType[];
+	inTurn: UUID.UUID;
+	main_player: UUID.UUID;
 	iface: ISource;
 }

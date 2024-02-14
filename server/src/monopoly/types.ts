@@ -5,6 +5,7 @@ import { Space } from './space';
 export interface MonopolyInterface<T extends object> {
 	onNotification(player: object, communicationlayer: T, notification: NotificationEvent): void;
 	onPlayerAdded(player: Player, engine_id: UUID.UUID): void;
+	onTurnStart(player: Player, engine_id: UUID.UUID): void;
 }
 
 

@@ -1,0 +1,10 @@
+.house {
+	color: black;
+
+	img {
+		$dimension: .35rem;
+		width: $dimension;
+		height: $dimension;
+		object-fit: cover;
+	}
+}

@@ -24,7 +24,7 @@ export type PlayerHoldableSpace = Space & {
 export type GameID = {
 	game_uuid: UUID.UUID,
 	host_uuid: UUID.UUID,
-	player_uuid: UUID.UUID
+	player_uuid: UUID.UUID,
 }
 
 export interface ICClient extends ConnectionInterface {
@@ -46,6 +46,7 @@ function HomePage() {
 	const uuid = useRef<GameID>({ game_uuid: "", player_uuid: "", host_uuid: "" });
 	const [spaces, setSpaces] = useState<PlayerHoldableSpace[]>([]);
 	const [players, setPlayers] = useState<Player[]>([]);
+	const [player_in_turn, setPlayerInTurn] = useState<UUID.UUID>("");
 
 	//gamestate
 	const [gamestate, setGamestate] = useState<GameState>("INACTIVE");
@@ -106,7 +107,7 @@ function HomePage() {
 			},
 			getPlayer: getPlayer,
 			alert: alert.throwFunction.bind(alert)
-		}, { getState: (() => { return gamestate_ref.current; }).bind(gamestate_ref), setState: setGamestate }, { getState: () => spaces, setState: setSpaces }, { getState: () => players, setState: setPlayers })
+		}, { getState: (() => { return gamestate_ref.current; }).bind(gamestate_ref), setState: setGamestate }, { getState: () => spaces, setState: setSpaces }, { getState: () => players, setState: setPlayers }, { getState: () => player_in_turn, setState: setPlayerInTurn })
 	}
 
 	function IPopUpFactory(): IPopUpInput {
@@ -217,7 +218,7 @@ function HomePage() {
 						</span>
 					</div>
 				}
-				<Board spaces={spaces} decisions={decisions} iface={game_updater.current as ISource} />
+				<Board spaces={spaces} decisions={decisions} inTurn={player_in_turn} iface={game_updater.current as ISource} main_player={uuid.current.player_uuid} />
 			</div>
 
 		</main>

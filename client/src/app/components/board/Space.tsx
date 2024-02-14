@@ -8,8 +8,6 @@ import { House } from "./House";
  */
 function Space(props: SpaceProps) {
 
-	console.log(props.houses);
-
 	return (
 		<div className={`space ${(props.vertical ?? false) ? 'vertical' : ''} ${(props.big ?? false) ? 'big' : ''} ${(props?.owner && 'owned') ?? ''} relative flex column`}>
 

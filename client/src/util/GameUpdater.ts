@@ -1,4 +1,5 @@
 import { AlertFunction, AlertIcon, AlertType } from "@/app/components/alert/Alert";
+import { Color } from "@/app/components/board/types";
 import { GameID, ICClient, PlayerHoldableSpace } from "@/app/pages/HomePage";
 import { send } from "process";
 import { Dispatch, SetStateAction } from "react";
@@ -58,13 +59,13 @@ export type DispatchWithResult<T, R> = (value: T) => R;
 
 
 type ReactUpdate<T> = { getState: DispatchWithResult<void, T>, setState: Dispatch<SetStateAction<T>> }
-type GameUpdaterStates = ReactUpdate<PlayerHoldableSpace[]> | ReactUpdate<Player[]> | ReactUpdate<GameState> | ReactUpdate<"">;
+type GameUpdaterStates = ReactUpdate<PlayerHoldableSpace[]> | ReactUpdate<Player[]> | ReactUpdate<GameState> | ReactUpdate<UUID.UUID> | ReactUpdate<"">;
 
 
 interface GameUpdaterCommunicationLayer {
 	getSpacesState: ReactUpdate<PlayerHoldableSpace[]>;
 	getPlayersState: ReactUpdate<Player[]>;
-	getWorldState: ReactUpdate<"">;
+	getInTurnState: ReactUpdate<UUID.UUID>;
 	getUUID: () => string;
 	getGameUUID: () => string;
 	alert: AlertFunction;
@@ -75,7 +76,7 @@ enum GameUpdaterStatesEnum {
 	GAMESTATE = 0,
 	SPACE = 1,
 	PLAYER = 2,
-	WORLD = 3,
+	IN_TURN = 3,
 }
 
 /**
@@ -89,14 +90,14 @@ export class GameUpdater implements GameHandler {
 	private playerHandle: PlayerHandle;
 	private alerter: AlertSystem;
 
-	private constructor(private icclayer: ICClient, gameState: ReactUpdate<GameState>, spaceState: ReactUpdate<PlayerHoldableSpace[]>, playerState?: ReactUpdate<Player[]>, worldState?: ReactUpdate<''>) {
+	private constructor(private icclayer: ICClient, gameState: ReactUpdate<GameState>, spaceState: ReactUpdate<PlayerHoldableSpace[]>, playerState?: ReactUpdate<Player[]>, inTurnState?: ReactUpdate<UUID.UUID>) {
 		this.states.push(gameState);
 		this.states.push(spaceState);
 		if (playerState) {
 			this.states.push(playerState);
 		}
-		if (worldState) {
-			this.states.push(worldState);
+		if (inTurnState) {
+			this.states.push(inTurnState);
 		}
 		//this must execute after the states are set
 		this.spaceHandle = new SpaceHandle(this.m_GCLFactory.bind(this)());
@@ -108,7 +109,7 @@ export class GameUpdater implements GameHandler {
 		return {
 			getSpacesState: this.states[GameUpdaterStatesEnum.SPACE] as ReactUpdate<PlayerHoldableSpace[]>,
 			getPlayersState: this.states[GameUpdaterStatesEnum.PLAYER] as ReactUpdate<Player[]>,
-			getWorldState: this.states[GameUpdaterStatesEnum.WORLD] as ReactUpdate<"">,
+			getInTurnState: this.states[GameUpdaterStatesEnum.IN_TURN] as ReactUpdate<UUID.UUID>,
 			getUUID: () => this.icclayer.getID.bind(this.icclayer)().player_uuid,
 			getGameUUID: () => this.icclayer.getID.bind(this.icclayer)().game_uuid,
 			alert: (message: string, type: AlertType = "INFO", icon_type: AlertIcon = 'alert') => { this.icclayer.alert.bind(this.icclayer)(message, type, icon_type) },
@@ -116,8 +117,8 @@ export class GameUpdater implements GameHandler {
 		}
 	}
 
-	public static create(icclayer: ICClient, gameState: ReactUpdate<GameState>, spaceState: ReactUpdate<PlayerHoldableSpace[]>, playerState?: ReactUpdate<Player[]>, worldState?: ReactUpdate<''>): GameUpdater {
-		return new GameUpdater(icclayer, gameState, spaceState, playerState, worldState);
+	public static create(icclayer: ICClient, gameState: ReactUpdate<GameState>, spaceState: ReactUpdate<PlayerHoldableSpace[]>, playerState?: ReactUpdate<Player[]>, inTurnState?: ReactUpdate<UUID.UUID>): GameUpdater {
+		return new GameUpdater(icclayer, gameState, spaceState, playerState, inTurnState);
 	}
 
 	public isGameUpdate(event: BaseResponse): boolean {
@@ -223,9 +224,17 @@ export class GameUpdater implements GameHandler {
 			}
 			if (event.response === 'update') {
 				if (event.recipient === 'global') {
-					(this.states[GameUpdaterStatesEnum.GAMESTATE] as ReactUpdate<GameState>).setState('STARTED');
-					this.alerter.throwInfo('Game has started!');
-					return;
+					const message_object = event.message as { message: ExpectedMessages, object: any };
+					if (message_object.object && message_object.message) {
+						if (message_object.message = 'TURN_UPDATE') {
+							const player = message_object.object as Player;
+							(this.states[GameUpdaterStatesEnum.IN_TURN] as ReactUpdate<UUID.UUID>).setState(player.uuid as UUID.UUID);
+						}
+					} else {
+						(this.states[GameUpdaterStatesEnum.GAMESTATE] as ReactUpdate<GameState>).setState('STARTED');
+						this.alerter.throwInfo('Game has started!');
+						return;
+					}
 				}
 			}
 			const ids = this.icclayer.getID();
@@ -289,6 +298,12 @@ export class SpaceHandle {
 				}
 			}
 			return new_space;
+		});
+	}
+
+	public getStreetByColor(color: Color): Space[] {
+		return this.m_gcl.getSpacesState.getState().filter((space) => {
+			return space.color?.hex === color.hex;
 		});
 	}
 

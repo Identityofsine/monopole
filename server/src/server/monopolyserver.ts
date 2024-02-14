@@ -31,7 +31,7 @@ namespace MessageFactory {
 			decision: decision,
 		}
 	}
-	export function createUpdate(message: string): GameResponse {
+	export function createUpdate(message: BaseResponse['message']): GameResponse {
 		return {
 			success: true,
 			response: 'update',
@@ -329,7 +329,7 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 		const uuid = UUID.generateUUID(15234);
 		console.log('[monopolyserver] created game %s', uuid);
 		const game: MonopolyGame = {
-			engine: new MonopolyEngine(uuid, player_uuid),
+			engine: new MonopolyEngine(uuid, player_uuid, this),
 			clients: new Map(),
 		}
 		this.games.set(uuid, game);
@@ -338,6 +338,12 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 
 	private getGame(uuid: UUID.UUID): MonopolyGame | undefined {
 		return this.games.get(uuid);
+	}
+
+	public onTurnStart(player: Player, engine_id: UUID.UUID): void {
+		const game = this.getGame(engine_id);
+		if (!game) throw new MonopolyError('No game found');
+		this.broadcast(game, MessageFactory.createUpdate({ message: 'TURN_UPDATE', object: player }));
 	}
 
 	public onNotification(player: Player, communicationlayer: PlayerCommunicationLayer, notification: NotificationEvent): void {

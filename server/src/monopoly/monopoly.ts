@@ -40,7 +40,7 @@ export class Monopoly {
 	private didCurrentPlayerRoll: boolean = false;
 	private currentPlayerDecisions: DecisionType[] = [];
 
-	public constructor(uuid?: UUID.UUID) {
+	public constructor(uuid?: UUID.UUID, private readonly m_iface?: MonopolyInterface<CommunicationLayer>) {
 		this.UUID = uuid ?? UUID.generateUUID(15234);
 		this.spaces = createBoard();
 		this.spaces.forEach((space: Space, index: number) => {
@@ -237,6 +237,7 @@ export class Monopoly {
 		}
 		this.currentPlayerDecisions = ['roll'];
 		player.notify({ type: NotificationType.DECISION, message: 'TURN_UPDATE', decision: 'roll' });
+		this.m_iface?.onTurnStart(player, this.UUID);
 	}
 
 	public jailPlayer(player: Player): void {
@@ -342,10 +343,10 @@ export class MonopolyEngine {
 	private engineThread: Promise<void> | undefined;
 	private ENGINE_TICK: number = 150;
 
-	public constructor(uuid?: UUID.UUID, master_id?: UUID.UUID) {
+	public constructor(uuid?: UUID.UUID, master_id?: UUID.UUID, m_iface?: MonopolyInterface<PlayerCommunicationLayer>) {
 		this.host_id = master_id ?? '';
 		this.id = uuid ?? UUID.generateUUID(15234);
-		this.monopoly = new Monopoly(this.id);
+		this.monopoly = new Monopoly(this.id, m_iface);
 	}
 
 	public get ID(): UUID.UUID {
