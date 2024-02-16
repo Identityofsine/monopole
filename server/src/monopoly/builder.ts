@@ -43,8 +43,10 @@ export class Builder implements IBuilder {
 
 	public buildHouse(property: Street, player: Player): boolean {
 		if (this.playerOwnsPropety(player, property)) {
-			if (this.playerHasSetOfProperties(player, property) && this.playerHasEnoughMoney(player, property.house_cost)) {
+			if (/* this.playerHasSetOfProperties(player, property) && */ this.playerHasEnoughMoney(player, property.house_cost)) {
 				property.buildHouse(player);
+				this.bcl.updateSpace(property);
+				console.log("[builder(%s)]:building house", this.bcl.engine_id);
 				return true;
 			}
 		}

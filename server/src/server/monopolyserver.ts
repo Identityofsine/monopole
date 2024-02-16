@@ -1,6 +1,6 @@
 import { MonopolyEngine, PlayerCommunicationLayer } from "../monopoly/monopoly";
 import { MonopolyError } from "../monopoly/monopoly.error";
-import { DecisionType, UUID, Filter, NotificationEvent, ExpectedInput, ExpectedMessages, ExpectedAlertMessages, NotificationType, ExpectedTradeInput, ExpectedTradeResponseInput, Responses } from "shared-types";
+import { DecisionType, UUID, Filter, NotificationEvent, ExpectedInput, ExpectedMessages, ExpectedAlertMessages, NotificationType, ExpectedTradeInput, ExpectedTradeResponseInput, Responses, ExpectedBuildInput } from "shared-types";
 import { Player } from "../monopoly/player";
 import ServerInstance from "./websocket";
 import * as WebSocket from 'ws';
@@ -174,6 +174,7 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 			const action = data.decision;
 			switch (action) {
 				case 'roll': {
+					// why is this here? : Because trade_accept and trade_decline are also responses that don't require the player to be in turn
 					if (!this.m_isPlayerInTurn(engine, data?.uuid ?? '')) {
 						this.m_sendError(ws, 'Not your turn', false);
 						return;
@@ -195,13 +196,26 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 						this.m_sendError(ws, 'Invalid Trade Request', false);
 						break;
 					}
-					//TODO: implement trade
 					communicationlayer.createTrade(trade_data.data.dest, trade_data.data);
 					break;
 				}
 				case 'trade_decline':
 				case 'trade_accept': {
 					this.m_handleTradeResponse(data, ws, engine);
+					break;
+				}
+				case 'build': {
+					if (!this.m_isPlayerInTurn(engine, data?.uuid ?? '')) {
+						this.m_sendError(ws, 'Not your turn', false);
+						return;
+					}
+					const building_data = data?.data as ExpectedBuildInput;
+					if (building_data.data?.[0]) {
+						const request = building_data.data[0];
+						for (let i = 0; i < request.amount; i++) {
+							communicationlayer.buildHouse(request.space);
+						}
+					}
 					break;
 				}
 				case 'buy': {
@@ -382,6 +396,12 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 		}
 		console.log('[monopolyserver] sending notification to player: %s', player.UUID, message);
 		socket.send(JSON.stringify(message));
+	}
+
+	public onBuildingUpdate(space: Property, engine_id: UUID.UUID): void {
+		const game = this.getGame(engine_id);
+		if (!game) throw new MonopolyError('No game found');
+		this.m_sendBuildingUpdate(game, space);
 	}
 
 	public onPlayerAdded(player: Player, engine_id: UUID.UUID): void {

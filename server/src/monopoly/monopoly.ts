@@ -58,6 +58,7 @@ export class Monopoly {
 			alreadyRolled: () => this.didCurrentPlayerRoll,
 			rollDice: () => { this.didCurrentPlayerRoll = true; return Pair.roll(); },
 			move: (amount: number) => this.movePlayer(player, amount),
+			buildHouse: (property: Property) => this.builder.buildHouse(property, player),
 			buyProperty: () => this.buyProperty(player),
 			sellProperty: () => this.sellProperty(player),
 			createTrade: (_player: Player | UUID.UUID, trade: TradeRequest) => this.createTrade(player, _player, trade),
@@ -88,6 +89,7 @@ export class Monopoly {
 			award: (player: Player | UUID.UUID, amount: number) => this.givePlayerMoney(player, amount),
 			mortgage: (player: Player) => { /*...*/ },
 			unmortgage: (player: Player) => { /*...*/ },
+			updateSpace: (space: Space) => this.m_iface?.onBuildingUpdate(space, this.UUID),
 		}
 	}
 
@@ -98,6 +100,7 @@ export class Monopoly {
 			collect: (player: Player, amount: number) => player.takeMoney(amount),
 			award: (player: Player, amount: number) => this.givePlayerMoney(player, amount),
 			getSpaces: () => this.spaces,
+			updateSpace: (space: Space) => this.m_iface?.onBuildingUpdate(space, this.UUID),
 		}
 	}
 
@@ -421,6 +424,7 @@ export interface TradeCommunicationLayer extends CommunicationLayer {
 export interface BuilderCommunicationLayer extends CommunicationLayer {
 	getPlayer(player: UUID.UUID): Player | undefined;
 	getSpaces(): Space[];
+	updateSpace(space: Space): void; //send update to server
 	collect(player: Player, amount: number): number;
 	award(player: Player, amount: number): void;
 }
@@ -429,6 +433,7 @@ export interface PlayerCommunicationLayer extends CommunicationLayer {
 	rollDice(): Pair;
 	alreadyRolled(): boolean;
 	move(amount: number, unjail?: boolean): Space;
+	buildHouse(property: Property): boolean;
 	buyProperty(): Property | false;
 	sellProperty(): boolean;
 	createTrade(player: Player | UUID.UUID, trade: ExpectedTradeInput['data']): boolean;
@@ -441,6 +446,7 @@ export interface BuildingCommunicationLayer extends CommunicationLayer {
 	getPlayer(player: UUID.UUID): Player | undefined;
 	sendToJail(player: Player | UUID.UUID): void;
 	sendToSpace(player: Player | UUID.UUID, space: Space): void;
+	updateSpace(space: Space): void; //send update to server
 	collect(player: Player | UUID.UUID, amount: number): number;
 	award(player: Player | UUID.UUID, amount: number): void;
 	mortgage(player: Player | UUID.UUID, property: Property): void;
