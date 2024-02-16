@@ -27,7 +27,7 @@ export class Trader implements ITrader {
 	}
 
 	public static validTrade(trade: TradeRequest, tcl?: TradeCommunicationLayer): boolean {
-		if (trade.dest.trim() === "" && trade.source.trim() === "") return false;
+		if (trade.dest?.trim() === "" && trade.source?.trim() === "") return false;
 		if (trade.dest === trade.source) return false;
 		if (tcl) {
 			const dest_player = tcl.getPlayer(trade.dest);
@@ -52,7 +52,7 @@ export class Trader implements ITrader {
 
 		const giveProperty = (player: Player, property: string[] | string) => {
 			if (typeof property === 'string') {
-				if (!property || property.trim() === "") return;
+				if (!property || property?.trim() === "") return;
 				const _prop = this.tcl.changeOwner(property, player);
 				if (!_prop) return;
 				if (callback) {

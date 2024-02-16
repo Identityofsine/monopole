@@ -53,7 +53,7 @@ export enum GameUpdateType {
 }
 
 export type GameState = 'STARTED' | 'WAITING' | 'ENDED' | 'INACTIVE';
-export type DispatchWithResult<T, R> = (value: T) => R;
+export type DispatchWithResult<T, R> = (...value: T[]) => R;
 
 //eventually change to a union type
 
@@ -453,6 +453,18 @@ export class PlayerHandle {
 						trade_id: this.current_trade
 					}
 				}
+			}
+			this.m_gcl.send(intent_block);
+			return;
+		} else if (choice === 'build') {
+			intent_block = {
+				intent: 'response',
+				state: 'turn',
+				decision: choice,
+				name: 'build',
+				uuid: this.m_gcl.getUUID(),
+				game_uuid: this.m_gcl.getGameUUID(),
+				data: data
 			}
 			this.m_gcl.send(intent_block);
 			return;

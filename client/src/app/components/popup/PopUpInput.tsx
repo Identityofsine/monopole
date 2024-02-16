@@ -11,8 +11,8 @@ import '../../styles/popupinput.scss';
 import { DispatchWithResult } from "@/util/GameUpdater";
 import { UUID } from "crypto";
 import { Dispatch, useEffect, useRef, useState } from "react";
-import { Player, Space } from "shared-types";
-import { ExpectedBuildingInputObject, ExpectedInput, ExpectedInputObject, ExpectedTradeInputObject, InputObject, RequiredInputDecision, isRequiredInputDecision } from "shared-types/server.input.types"
+import { DecisionType, Player, Space } from "shared-types";
+import { ExpectedBuildInput, ExpectedBuildingInputObject, ExpectedInput, ExpectedInputObject, ExpectedTradeInputObject, InputObject, RequiredInputDecision, isRequiredInputDecision } from "shared-types/server.input.types"
 import { PopUpProps } from './PopUp';
 import { Functional } from '@/util/FunctionalUtil';
 
@@ -203,7 +203,7 @@ function DropdownInput({ label, value, hidden, auto_fill, pushState, craft_div, 
 					return (<option value={option.uuid} key={option.uuid}>{option.name}</option>)
 				})
 				: value === 'space' ?
-					target
+					only_target
 						? iface?.getSpacesByPlayer(get_target_player()).map((option) => {
 							return (<option key={option.uuid} value={option.uuid}>{option.name}</option>)
 						})
@@ -327,7 +327,6 @@ function Parse({ input, pushState, iface }: ParseProps): JSX.Element {
 
 	const [target, setTarget] = useState<UUID>('00000' as UUID);
 	useEffect(() => {
-		console.log("target:", target);
 	}, [target])
 
 	function Compile_input(parsed_obj: ParseKeywordObject): boolean {
@@ -380,7 +379,22 @@ function Parse({ input, pushState, iface }: ParseProps): JSX.Element {
 
 					const targeting_module = flag & ParseFlag.TARGETER;
 					combine_react_element(
-						<DropdownInput value={args[0]} hidden={hide} auto_fill={auto_fill} label={label ?? ''} pushState={pushState} craft_div={craft_div} iface={iface} targeting_module={targeting_module} setTarget={setTarget} ignore_self={ignore_self} only_target={(flag & ParseFlag.ONLY_TARGET) > 0} get_target_player={get_target_player} target={target} args={args} />
+						<DropdownInput
+							value={args[0]}
+							hidden={hide}
+							auto_fill={auto_fill}
+							label={label ?? ''}
+							pushState={pushState}
+							craft_div={craft_div}
+							iface={iface}
+							targeting_module={targeting_module}
+							setTarget={setTarget}
+							ignore_self={ignore_self}
+							only_target={(flag & ParseFlag.ONLY_TARGET) > 0}
+							get_target_player={get_target_player}
+							target={target}
+							args={args}
+						/>
 					)
 					break;
 				}
@@ -408,9 +422,11 @@ function Parse({ input, pushState, iface }: ParseProps): JSX.Element {
 
 }
 
+type InputCompileFunction = (decision: DecisionType, input: ExpectedInput) => void;
+
 type PopUpInputProps = {
 	input_style: RequiredInputDecision | ''; //expected to be react state
-	onInputCompiled: DispatchWithResult<ExpectedInput, void>;
+	onInputCompiled: InputCompileFunction;
 	iface?: IPopUpInput;
 } & PopUpProps;
 
@@ -487,13 +503,40 @@ export default function PopUpInput({ input_style, onInputCompiled, iface, close,
 			}
 		}
 
+		function compile_build(keys: string[], current_state: PopupInputStateStorage) {
+
+			for (let i = 0; i < keys.length; i++) {
+				const key = keys[i];
+				switch (key) {
+					case 'houses': {
+						output.data = {
+							houses: current_state[key] as number,
+							...output.data ?? {}
+						};
+						break;
+					}
+					case 'property': {
+						output.data = {
+							property: current_state[key] as string,
+							...output.data ?? {}
+						};
+						break;
+					}
+					default: {
+						break;
+					}
+				}
+			}
+			return output;
+		}
+
 		for (let i = 0; i < states.current.length; i++) {
 			const state = states.current[i];
 			const keys = Object.keys(state) as string[];
 			if (input_style === 'trade') compile_trade(keys, state);
+			if (input_style === 'build') compile_build(keys, state);
 		}
-
-		onInputCompiled(output);
+		onInputCompiled(output.decision, output);
 		return;
 	}
 

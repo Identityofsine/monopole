@@ -60,7 +60,7 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 	}
 
 	private m_doesDecisionNeedInput(decision: DecisionType): boolean {
-		return decision === 'buy' || decision === 'pay' || decision === 'roll' || decision === 'trade';
+		return decision === 'buy' || decision === 'pay' || decision === 'roll' || decision === 'trade' || decision === 'build';
 	}
 
 	private m_isProperEInput(value: ExpectedInput): boolean {
@@ -209,12 +209,21 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 						this.m_sendError(ws, 'Not your turn', false);
 						return;
 					}
+					console.log('[monopolyserver] building');
 					const building_data = data?.data as ExpectedBuildInput;
-					if (building_data.data?.[0]) {
-						const request = building_data.data[0];
-						for (let i = 0; i < request.amount; i++) {
-							communicationlayer.buildHouse(request.space);
+					if (building_data.data) {
+						const request = building_data.data;
+						for (let i = 0; i < request.houses; i++) {
+							const response = communicationlayer.buildHouse(request.property);
+							if (response) {
+								console.log('[monopolyserver] built house');
+							} else {
+								console.log('[monopolyserver] could not build house');
+							}
 						}
+					} else {
+						this.m_sendError(ws, 'Invalid build request', false);
+						console.log('[monopolyserver] invalid build request: ', building_data);
 					}
 					break;
 				}

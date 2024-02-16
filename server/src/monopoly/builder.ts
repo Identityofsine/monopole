@@ -6,9 +6,10 @@
 import { Color, Property, Street } from "./space";
 import { BuilderCommunicationLayer } from "./monopoly";
 import { Player } from "./player";
+import { UUID } from "shared-types";
 
 export interface IBuilder {
-	buildHouse(property: Property, player: Player): boolean;
+	buildHouse(property: Property | UUID.UUID, player: Player): boolean;
 	mortgageHouse(property: Property, player: Player): boolean;
 }
 
@@ -19,7 +20,9 @@ export class Builder implements IBuilder {
 	}
 
 	private playerOwnsPropety(player: Player, property: Property): boolean {
-		return property._owner === player.UUID;
+		console.log(property);
+		console.log("[builder(%s)]:checking if player owns property\n\t(p:%s, s:%s)", this.bcl.engine_id, property._owner, player.UUID);
+		return property?._owner === player.UUID;
 	}
 
 	private playerHasEnoughMoney(player: Player, cost: number): boolean {
@@ -41,15 +44,22 @@ export class Builder implements IBuilder {
 		return spaces.filter((space) => space instanceof Street && space.color.hex === color.hex) as Street[];
 	}
 
-	public buildHouse(property: Street, player: Player): boolean {
+	public buildHouse(property: Street | UUID.UUID, player: Player): boolean {
+		if (typeof property === 'string') {
+			property = this.bcl.getSpaces().find((space) => space.UUID === property) as Street;
+		}
 		if (this.playerOwnsPropety(player, property)) {
 			if (/* this.playerHasSetOfProperties(player, property) && */ this.playerHasEnoughMoney(player, property.house_cost)) {
 				property.buildHouse(player);
 				this.bcl.updateSpace(property);
 				console.log("[builder(%s)]:building house", this.bcl.engine_id);
 				return true;
+			} else {
+				console.log("[builder(%s)]:player does not have enough money to build house", this.bcl.engine_id);
+				return false;
 			}
 		}
+		console.log("[builder(%s)]:player does not own property", this.bcl.engine_id);
 		return false;
 	}
 
