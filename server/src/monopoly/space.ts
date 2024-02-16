@@ -98,7 +98,7 @@ export class Property extends Space {
 
 export class Street extends Property {
 
-	private houses: number = 2;
+	private houses: number = 0;
 	private hotels: number = 0;
 
 	constructor(public readonly id: number, public readonly name: string, public readonly price: number, public readonly rent: Rent, public readonly group: number, public readonly color: Color, public readonly house_cost = 0) {
