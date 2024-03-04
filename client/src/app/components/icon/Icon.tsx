@@ -1,4 +1,5 @@
 import { createRef, useEffect, useState } from "react";
+import BUILD_CONIFG from "../../../../build.config";
 
 export type IconProps = {
 	icon: 'alert.svg' | 'dice.png' | 'house.png' | 'info.svg' | 'payment.svg',
@@ -35,7 +36,7 @@ function Icon(props: IconProps) {
 
 	return (
 		<div className="flex center-flex" onClick={e => { props?.onClick && props?.onClick(e) }} ref={ref}>
-			<img src={hover ? `/icon/${props.hover_icon}` : `/icon/${props.icon}`} alt={props.alt ?? 'icon'} className={`${props.className && props.className}`} style={props.style} draggable={false} />
+			<img src={hover ? `${BUILD_CONIFG.webPath}icon/${props.hover_icon}` : `/icon/${props.icon}`} alt={props.alt ?? 'icon'} className={`${props.className && props.className}`} style={props.style} draggable={false} />
 		</div>
 	)
 }
