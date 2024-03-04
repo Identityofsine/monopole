@@ -38,7 +38,7 @@ export interface ICClient extends ConnectionInterface {
 function HomePage() {
 
 	//wss://fofx.zip/mserver/
-	const connection = useConnectionObject("ws://localhost:8337/");
+	const connection = useConnectionObject(process.env.NODE_ENV === "production" ? "ws://fofx.zip/mserver/" : "ws://localhost:8337/");
 	const DynamicReactJson = dynamic(import('react-json-view'), { ssr: false });
 
 	//debug
