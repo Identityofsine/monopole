@@ -36,7 +36,7 @@ function Icon(props: IconProps) {
 
 	return (
 		<div className="flex center-flex" onClick={e => { props?.onClick && props?.onClick(e) }} ref={ref}>
-			<img src={hover ? `${BUILD_CONIFG.webPath}icon/${props.hover_icon}` : `/icon/${props.icon}`} alt={props.alt ?? 'icon'} className={`${props.className && props.className}`} style={props.style} draggable={false} />
+			<img src={hover ? `${BUILD_CONIFG.webPath}icon/${props.hover_icon}` : `${BUILD_CONIFG.webPath}icon/${props.icon}`} alt={props.alt ?? 'icon'} className={`${props.className && props.className}`} style={props.style} draggable={false} />
 		</div>
 	)
 }
