@@ -31,3 +31,9 @@ For both the client and server, you must clone this repo.
 2. Run `npm i`
 3. To start the server run `npm run dev`
 
+### Known Issues So Far
+
+- [ ] Jailed Players can move, very buggy.
+- [ ] Declined Requests can stop the gameflow due to the player not having their decisions popped-up.
+- [ ] Trade information not available to reciever
+- [ ] Turns end right after a decision
