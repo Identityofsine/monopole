@@ -113,6 +113,7 @@ export class Street extends Property {
 		return this.hotels;
 	}
 
+	// please have a check to see if the player has enough money to build a house, and owns the house.
 	public buildHouse(player: Player): void {
 		if (this.houses < 4) {
 			this.useCommunicationLayer().collect(player, this.house_cost);

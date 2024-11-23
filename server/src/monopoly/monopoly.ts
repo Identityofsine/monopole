@@ -116,6 +116,7 @@ export class Monopoly {
 		return this.trader;
 	}
 
+	/* resends the decision */
 	private resendDecisions(plyr: Player | UUID.UUID) {
 		if (typeof plyr === 'string') {
 			plyr = this.getPlayer(plyr) as Player;
@@ -125,6 +126,7 @@ export class Monopoly {
 		}
 	}
 
+	/* this function locks the engine until the player makes a decision */
 	private waitForPlayer(player: Player): void {
 		this.wait.waiting = true;
 		this.wait.who = player.UUID;
@@ -185,14 +187,17 @@ export class Monopoly {
 			console.log('[monopoly] player %s passed go', player.Name);
 		}
 
+		/* check if player is in jail */
 		if (!unjail && player.Jail) {
 			player.JailTurns++;
+			//player is in jail for 3 turns
 			if (player.JailTurns === 3) {
 				player.Jail = false;
 				player.JailTurns = 0;
+			} else {
+				this.stopWaiting();
+				return this.spaces[new_position];
 			}
-			this.stopWaiting();
-			return this.spaces[new_position];
 		} else if (unjail) {
 			player.Jail = false;
 			player.JailTurns = 0;
@@ -201,11 +206,14 @@ export class Monopoly {
 		this.stopWaiting();
 		console.log('[monopoly] player %s moved to space %d', player.Name, new_position);
 
+		/* check if player landed on a space */
 		const space: Space = this.spaces[new_position];
+		/* get the behavior when the player lands on the space */
 		const land_response = space.onLand(player);
 
 		const general_decisions: DecisionType[] = ['ignore', 'trade'];
 
+		/* should the engine wait for the player to make a decision? */
 		if (land_response.engine_should_wait) {
 			if (land_response.decision === undefined) {
 				land_response.decision = [];
@@ -213,6 +221,7 @@ export class Monopoly {
 			else if (typeof land_response.decision === 'string') {
 				land_response.decision = [land_response.decision];
 			}
+			/* merge the decisions */
 			const decisions: DecisionType[] = [...land_response.decision, ...general_decisions];
 			this.currentPlayerDecisions = decisions;
 			player.notify({ type: NotificationType.DECISION, message: 'TURN_UPDATE', decision: decisions, data: { position: player.Position, ...space } })
@@ -222,24 +231,33 @@ export class Monopoly {
 		return space;
 	}
 
+	// handle the next turn.
 	public nextTurn(): void {
+		//if this is called and the engine is waiting for a player, return
 		if (this.isWaiting()) return;
+		// set the current player to the next player
 		this.didCurrentPlayerRoll = false;
+		// if the current player is -1, set it to 0
 		if (this.currentPlayer === -1)
 			this.currentPlayer = 0;
-		else
+		else // modulo the current player by the number of players to get the first player
 			this.currentPlayer = (this.currentPlayer + 1) % this.players.length;
-		const player: Player = this.players[this.currentPlayer];
+		const player: Player = this.players[this.currentPlayer]; // get the current player
 
+		//now lets wait for the player to make a decision
 		this.waitForPlayer(player);
+
 		//is player in jail?
 		if (player.Jail) {
 			player.JailTurns += 1;
 			player.notify({ type: NotificationType.DECISION, message: 'JAIL_UPDATE', decision: ['pay', 'roll'] });
 			return;
 		}
+		// notify the player that it is their turn
 		this.currentPlayerDecisions = ['roll'];
+		// notify the player that it is their turn
 		player.notify({ type: NotificationType.DECISION, message: 'TURN_UPDATE', decision: 'roll' });
+		//call the onTurnStart function to let the interface know that the player's turn has started
 		this.m_iface?.onTurnStart(player, this.UUID);
 	}
 

@@ -161,6 +161,7 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 		}
 	}
 
+	// this function handles the response from the player
 	private m_responseStage(data: ResponseIntent, ws: WebSocket): void {
 		try {
 			if (!data.game_uuid) throw new MonopolyError('No game uuid provided');
@@ -201,6 +202,7 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 				}
 				case 'trade_decline':
 				case 'trade_accept': {
+					// implement a check here that makes sure the player is in the trade. -- trade object?
 					this.m_handleTradeResponse(data, ws, engine);
 					break;
 				}
@@ -267,6 +269,7 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 	}
 
 
+	//send updates to all players: This particular function sends updates to all players when something about a player changes.
 	private m_sendPlayerUpdate(game: MonopolyGame, player: Player) {
 		const filtered_player: Filter<Player, | 'notify' | 'giveMoney' | 'takeMoney' | 'setPosition' | 'setMonopolyInterface' | 'setCommunicationLayer'> = player;
 		const update: GameResponse = {
@@ -278,6 +281,7 @@ export class MonopolyServer implements MonopolyInterface<PlayerCommunicationLaye
 		this.broadcast(game, update);
 	}
 
+	//send updates to all players: This particular function sends updates to all players when something about a property changes.
 	private m_sendBuildingUpdate(game: MonopolyGame, space: Property) {
 		console.log('[monopolyserver] sending building update, space: %s', space);
 		const update: GameResponse = {
